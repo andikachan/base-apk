@@ -1765,7 +1765,7 @@ class _DashboardPageState extends State<DashboardPage>
         'color': const Color(0xFF9D4EDD),
         'gradient': [const Color(0xFF9D4EDD), const Color(0xFF6B21A8)],
         'tap': () {
-          Navigator.push(context, _slideRoute(ContactPage(sessionKey: sessionKey, role: role)));
+          Navigator.push(context, _slideRoute(const ContactPage()));
         }
       },
       {
