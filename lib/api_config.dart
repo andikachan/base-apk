@@ -1,0 +1,1 @@
+const String baseUrl = "https://base-api.ndichan.xyz";
