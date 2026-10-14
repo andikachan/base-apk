@@ -5,7 +5,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'api_config.dart';
+import 'bug_sender.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -278,6 +280,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   fontWeight: FontWeight.bold)),
           content: Text(msg, style: TextStyle(color: _textGrey)),
           actions: [
+            if (title.contains("No Private Sender"))
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BugSenderPage(
+                        sessionKey: widget.sessionKey,
+                        username: widget.username,
+                        role: widget.role,
+                      ),
+                    ),
+                  ).then((_) {
+                    _fetchSenderStats();
+                    _loadGlobalSenders();
+                  });
+                },
+                child: const Text("PAIRING BOT",
+                    style: TextStyle(
+                        color: Color(0xFF22C55E),
+                        fontFamily: 'Orbitron',
+                        fontWeight: FontWeight.bold)),
+              ),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text("OK",
@@ -783,7 +809,64 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+
+          // Tombol Pairing Bot WA
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BugSenderPage(
+                    sessionKey: widget.sessionKey,
+                    username: widget.username,
+                    role: widget.role,
+                  ),
+                ),
+              ).then((_) {
+                _fetchSenderStats();
+                _loadGlobalSenders();
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF22C55E).withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(FontAwesomeIcons.whatsapp, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'PAIRING BOT / KELOLA SENDER',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Orbitron',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11.5,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Spacer(),
+                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+                ],
+              ),
+            ),
+          ),
 
           // Sender cards
           Row(
@@ -791,7 +874,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               // PRIVATE SENDER
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedSender = 'private'),
+                  onTap: () {
+                    setState(() => _selectedSender = 'private');
+                    if (_privateSenderCount == 0) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BugSenderPage(
+                            sessionKey: widget.sessionKey,
+                            username: widget.username,
+                            role: widget.role,
+                          ),
+                        ),
+                      ).then((_) {
+                        _fetchSenderStats();
+                        _loadGlobalSenders();
+                      });
+                    }
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     height: 155,
@@ -831,7 +931,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           'Pribadi',
                           style: TextStyle(
                             color: _selectedSender == 'private'
-                                ? Colors.black
+                            ? Colors.black
                                 : _textGrey,
                             fontFamily: 'Orbitron',
                             fontWeight: FontWeight.bold,
@@ -841,11 +941,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         const SizedBox(height: 6),
                         _privateSenderCount == 0
                             ? Text(
-                                '✕ Kosong',
+                                '+ Tap Pairing',
                                 style: TextStyle(
                                   color: _selectedSender == 'private'
-                                      ? Colors.black54
-                                      : Colors.redAccent,
+                                      ? Colors.black87
+                                      : const Color(0xFF22C55E),
                                   fontFamily: 'ShareTechMono',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,

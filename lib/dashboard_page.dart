@@ -1715,6 +1715,9 @@ class _DashboardPageState extends State<DashboardPage>
           children: [
             // USER + DASHBOARD CARD
             _buildWelcomeCard(),
+            const SizedBox(height: 16),
+            // PAIRING BOT WA HERO CARD
+            _buildPairingBotCard(),
             const SizedBox(height: 18),
             // Quick Actions title
             Row(
@@ -1740,7 +1743,7 @@ class _DashboardPageState extends State<DashboardPage>
                 ),
                 const Spacer(),
                 Text(
-                  '4 Modules Online',
+                  '6 Modules Online',
                   style: TextStyle(
                     color: const Color(0xFF00E5FF).withOpacity(0.8),
                     fontSize: 11,
@@ -1945,8 +1948,141 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
+  Widget _buildPairingBotCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1527),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF22C55E).withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF22C55E).withOpacity(0.15),
+                  border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.5)),
+                ),
+                child: const Icon(FontAwesomeIcons.whatsapp, color: Color(0xFF22C55E), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'PAIRING BOT WA',
+                          style: TextStyle(
+                            fontFamily: 'Orbitron',
+                            color: Color(0xFFF1F5F9),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF22C55E).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.4)),
+                          ),
+                          child: const Text(
+                            'READY',
+                            style: TextStyle(
+                              color: Color(0xFF22C55E),
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Hubungkan nomor WA via kode pairing 8 digit untuk aktifkan bot sender',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  _slideRoute(BugSenderPage(
+                    sessionKey: sessionKey,
+                    username: username,
+                    role: role,
+                  )),
+                );
+              },
+              icon: const Icon(Icons.link_rounded, size: 18),
+              label: const Text(
+                'PAIRING BOT / KELOLA SENDER',
+                style: TextStyle(
+                  fontFamily: 'Orbitron',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF22C55E),
+                foregroundColor: const Color(0xFF070B14),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLightQuickActions() {
     final actions = [
+      {
+        'icon': FontAwesomeIcons.whatsapp,
+        'title': 'Pairing Bot WA',
+        'sub': 'Kode pairing & kelola sender',
+        'color': const Color(0xFF22C55E),
+        'gradient': [const Color(0xFF22C55E), const Color(0xFF16A34A)],
+        'tap': () {
+          Navigator.push(
+            context,
+            _slideRoute(BugSenderPage(
+              sessionKey: sessionKey,
+              username: username,
+              role: role,
+            )),
+          );
+        }
+      },
       {
         'icon': Icons.bug_report_rounded,
         'title': 'WA Sender',
@@ -1985,6 +2121,25 @@ class _DashboardPageState extends State<DashboardPage>
         'gradient': [const Color(0xFF10B981), const Color(0xFF047857)],
         'tap': () {
           Navigator.push(context, _slideRoute(RiwayatPage(sessionKey: sessionKey, role: role)));
+        }
+      },
+      {
+        'icon': Icons.person_rounded,
+        'title': 'Profil Akun',
+        'sub': 'Status akun & role user',
+        'color': const Color(0xFFF59E0B),
+        'gradient': [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+        'tap': () {
+          Navigator.push(
+            context,
+            _slideRoute(ProfilePage(
+              username: username,
+              password: password,
+              role: role,
+              expiredDate: expiredDate,
+              sessionKey: sessionKey,
+            )),
+          );
         }
       },
     ];
@@ -3558,6 +3713,21 @@ class _DashboardPageState extends State<DashboardPage>
                         icon: Icons.workspace_premium_rounded,
                         label: 'Owner Page',
                         onTap: () => _onDrawerNav(3)),
+                  _buildDrawerItem(
+                    icon: FontAwesomeIcons.whatsapp,
+                    label: 'Pairing Bot WA',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        _slideRoute(BugSenderPage(
+                          sessionKey: sessionKey,
+                          username: username,
+                          role: role,
+                        )),
+                      );
+                    },
+                  ),
                   _buildDrawerItem(
                     icon: Icons.history_rounded,
                     label: 'Riwayat Aktivitas',

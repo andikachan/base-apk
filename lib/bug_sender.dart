@@ -445,7 +445,7 @@ class _BugSenderPageState extends State<BugSenderPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Bug Sender',
+              const Text('WhatsApp Sender & Pairing',
                   style: TextStyle(
                     color: _C.text,
                     fontSize: 18,
