@@ -485,7 +485,7 @@ class _DomainInputState extends State<_DomainInput> {
         cursorColor: _C.blueMid,
         onSubmitted: (_) => widget.onSubmit(),
         decoration: InputDecoration(
-          hintText: 'contoh: nullxteam.fun',
+          hintText: 'contoh: google.com',
           hintStyle: const TextStyle(color: _C.textDim, fontSize: 13),
           labelText: 'Domain Target',
           labelStyle: const TextStyle(color: _C.textSub, fontSize: 13),

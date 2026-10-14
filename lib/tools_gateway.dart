@@ -9,8 +9,6 @@ import 'domain_page.dart';
 import 'spam_ngl.dart';
 import 'phone_lookup.dart';
 import 'email_osint.dart';
-import 'dracin_page.dart';
-import 'anime_home.dart';
 
 // ─── Theme Colors ─────────────────────────────────────────────────────────────
 class _C {
@@ -121,14 +119,6 @@ class _ToolsPageState extends State<ToolsPage> {
       accent: _C.amber,
       gradient: [Color(0xFFF59E0B), Color(0xFFD97706)],
     ),
-    _ToolCategory(
-      id: 'watchs',
-      title: 'Media & Entertainment',
-      subtitle: 'Anime & Drama Stream',
-      icon: Icons.play_circle_filled_rounded,
-      accent: Color(0xFFEC4899),
-      gradient: [Color(0xFFEC4899), Color(0xFFBE185D)],
-    ),
   ];
 
   @override
@@ -223,40 +213,8 @@ class _ToolsPageState extends State<ToolsPage> {
     ),
   ];
 
-  List<_ToolItem> _watchsItems() => [
-    _ToolItem(
-      icon: Icons.live_tv_rounded,
-      label: 'Anime Stream Hub',
-      desc: 'Koleksi episode anime subtitle Indonesia',
-      accent: const Color(0xFFEC4899),
-      onTap: () => _push(const HomeAnimePage()),
-    ),
-    _ToolItem(
-      icon: Icons.movie_filter_rounded,
-      label: 'Drama & Dracin',
-      desc: 'Streaming serial drama Asia terpopuler',
-      accent: const Color(0xFFEC4899),
-      onTap: () => _push(const DracinPage()),
-    ),
-  ];
-
-  void _openCategorySheet(_ToolCategory cat) {
-    List<_ToolItem> items;
-    switch (cat.id) {
-      case 'osint':
-        items = _osintItems();
-        break;
-      case 'panel':
-        items = _panelItems();
-        break;
-      case 'downloader':
-        items = _downloaderItems();
-        break;
       case 'utilities':
         items = _utilityItems();
-        break;
-      case 'watchs':
-        items = _watchsItems();
         break;
       default:
         items = [];

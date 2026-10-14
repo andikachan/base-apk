@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.nullx.cyber"
+    namespace = "com.ndika.base"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.nullx.cyber"
+        applicationId = "com.ndika.base"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -30,23 +30,22 @@ import 'profile_page.dart';
 import 'riwayat_page.dart';
 import 'info_page.dart';
 import 'al_quran.dart';
-import 'anime_home.dart';
 
 // ─── COLORS ────────────────────────────────────────────────────────────────────
-const Color kBg      = Color(0xFFF5F6F8);
-const Color kCard    = Color(0xFFFFFFFF);
-const Color kCardAlt = Color(0xFFF0F2F5);
-const Color kBorder  = Color(0xFFE0E3E8);
-const Color kCyan    = Color(0xFF00BCD4);
-const Color kGreen   = Color(0xFF4CAF50);
-const Color kPink    = Color(0xFFE91E63);
-const Color kOrange  = Color(0xFFFFB300);
-const Color kBlue    = Color(0xFF2196F3);
-const Color kPurple  = Color(0xFF7C4DFF);
-const Color kYellow  = Color(0xFFFFB300);
-const Color kWhite   = Color(0xFF1A1A1A);
-const Color kWhite54 = Color(0xFF757575);
-const Color kWhite24 = Color(0xFFBDBDBD);
+const Color kBg      = Color(0xFF070B14);
+const Color kCard    = Color(0xFF0D1527);
+const Color kCardAlt = Color(0xFF111D35);
+const Color kBorder  = Color(0xFF1E3255);
+const Color kCyan    = Color(0xFF00E5FF);
+const Color kGreen   = Color(0xFF10B981);
+const Color kPink    = Color(0xFFEC4899);
+const Color kOrange  = Color(0xFF0284C7);
+const Color kBlue    = Color(0xFF38BDF8);
+const Color kPurple  = Color(0xFF9D4EDD);
+const Color kYellow  = Color(0xFFF59E0B);
+const Color kWhite   = Color(0xFFF1F5F9);
+const Color kWhite54 = Color(0xFF94A3B8);
+const Color kWhite24 = Color(0xFF475569);
 
 // ─── Prayer Time Service ───────────────────────────────────────────────────────
 class PrayerTimeService {
@@ -1446,11 +1445,12 @@ class _DashboardPageState extends State<DashboardPage>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('MENU NDIKA EXECUTION',
+                          Text('NDIKA BASE PROTOCOL',
                             style: TextStyle(
-                              color: const Color(0xFF00F2FE).withOpacity(0.75),
+                              color: const Color(0xFF00F2FE).withOpacity(0.85),
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
+                              fontFamily: 'Orbitron',
                               letterSpacing: 1.0,
                             )),
                           const SizedBox(height: 6),
@@ -1709,34 +1709,50 @@ class _DashboardPageState extends State<DashboardPage>
       opacity: _fadeAnim,
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // USER + DASHBOARD CARD (NDIKA style)
+            // USER + DASHBOARD CARD
             _buildWelcomeCard(),
-            const SizedBox(height: 14),
-            // TABUNGAN VIRTUAL
-            _buildTabunganCard(),
-            const SizedBox(height: 14),
-            // GLOBAL CHAT teaser
-            _buildGlobalChatTeaser(),
-            const SizedBox(height: 14),
-            // Bug promo banner
-            _buildBugPromoBanner(),
             const SizedBox(height: 18),
             // Quick Actions title
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: kOrange,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text('QUICK ACTIONS',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E5FF),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'MAIN ARSENAL',
+                  style: TextStyle(
+                    fontFamily: 'Orbitron',
+                    color: Color(0xFFF1F5F9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '4 Modules Online',
+                  style: TextStyle(
+                    color: const Color(0xFF00E5FF).withOpacity(0.8),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             _buildLightQuickActions(),
+            const SizedBox(height: 18),
+            // Broadcast / News
+            _buildBugPromoBanner(),
             const SizedBox(height: 20),
           ],
         ),
@@ -1868,97 +1884,175 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   Widget _buildBugPromoBanner() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, _slideRoute(BugSenderPage(sessionKey: sessionKey, username: username, role: role)));
-      },
-      child: Container(
-        height: 150,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A237E), Color(0xFF283593)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1527),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00E5FF).withOpacity(0.08),
+            blurRadius: 16,
           ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -10, bottom: -10,
-              child: Icon(Icons.bug_report, size: 100, color: Colors.white.withOpacity(0.08)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF00E5FF).withOpacity(0.12),
+              border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.4)),
             ),
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Coba Fitur\nBug WhatsApp!',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, height: 1.25)),
-                  const SizedBox(height: 6),
-                  Text('Gunakan payload mematikan untuk menguji ketahanan WhatsApp.',
-                    style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 11, height: 1.3)),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: kOrange,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('Buka Halaman Bug', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            child: const Icon(Icons.campaign_rounded, color: Color(0xFF00E5FF), size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'SYSTEM BROADCAST',
+                  style: TextStyle(
+                    fontFamily: 'Orbitron',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF00E5FF),
+                    letterSpacing: 1.0,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  newsList.isNotEmpty
+                      ? (newsList.first['title']?.toString() ?? 'NDIKA BASE PROTOCOL ACTIVE')
+                      : 'NDIKA BASE v6.0.0 is running with maximum stability and security.',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF94A3B8),
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildLightQuickActions() {
     final actions = [
-      {'icon': Icons.bug_report, 'title': 'Bug WhatsApp', 'sub': 'Kirim payload ke nomor atau grup WA', 'color': const Color(0xFFE53935), 'tap': () {
-        Navigator.push(context, _slideRoute(BugSenderPage(sessionKey: sessionKey, username: username, role: role)));
-      }},
-      {'icon': Icons.construction_rounded, 'title': 'Tools Arsenal', 'sub': 'Akses utilitas OSINT, Downloader & Server', 'color': const Color(0xFF0284C7), 'tap': () {
-        setState(() => _navIndex = 3);
-      }},
-      {'icon': Icons.build_circle_outlined, 'title': 'Other Tools', 'sub': 'Akses tools tambahan', 'color': const Color(0xFF43A047), 'tap': () {
-        setState(() => _navIndex = 4);
-      }},
-      {'icon': Icons.history, 'title': 'Riwayat', 'sub': 'Lihat aktivitas terbaru', 'color': const Color(0xFF8E24AA), 'tap': () {
-        Navigator.push(context, _slideRoute(RiwayatPage(sessionKey: sessionKey, role: role)));
-      }},
+      {
+        'icon': Icons.bug_report_rounded,
+        'title': 'WA Sender',
+        'sub': 'Bug & crash payload sender',
+        'color': const Color(0xFFEF4444),
+        'gradient': [const Color(0xFFEF4444), const Color(0xFFB91C1C)],
+        'tap': () {
+          setState(() => _navIndex = 1);
+        }
+      },
+      {
+        'icon': Icons.construction_rounded,
+        'title': 'Arsenal Hub',
+        'sub': 'OSINT, Panel & Downloader',
+        'color': const Color(0xFF00E5FF),
+        'gradient': [const Color(0xFF00E5FF), const Color(0xFF0284C7)],
+        'tap': () {
+          setState(() => _navIndex = 3);
+        }
+      },
+      {
+        'icon': Icons.apps_rounded,
+        'title': 'System Menu',
+        'sub': 'Spam OTP & Pairing flood',
+        'color': const Color(0xFF9D4EDD),
+        'gradient': [const Color(0xFF9D4EDD), const Color(0xFF6B21A8)],
+        'tap': () {
+          setState(() => _navIndex = 4);
+        }
+      },
+      {
+        'icon': Icons.history_rounded,
+        'title': 'Activity Logs',
+        'sub': 'Riwayat & status eksekusi',
+        'color': const Color(0xFF10B981),
+        'gradient': [const Color(0xFF10B981), const Color(0xFF047857)],
+        'tap': () {
+          Navigator.push(context, _slideRoute(RiwayatPage(sessionKey: sessionKey, role: role)));
+        }
+      },
     ];
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: actions.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.35,
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.35,
       ),
       itemBuilder: (_, i) {
         final a = actions[i];
+        final grad = a['gradient'] as List<Color>;
+        final col = a['color'] as Color;
+
         return GestureDetector(
           onTap: a['tap'] as void Function(),
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: kCard,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: kBorder),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              color: const Color(0xFF0D1527),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF1E3255)),
+              boxShadow: [
+                BoxShadow(
+                  color: col.withOpacity(0.12),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(a['icon'] as IconData, color: a['color'] as Color, size: 26),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: grad),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(a['icon'] as IconData, color: Colors.white, size: 20),
+                ),
                 const Spacer(),
-                Text(a['title'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A))),
+                Text(
+                  a['title'] as String,
+                  style: const TextStyle(
+                    fontFamily: 'Orbitron',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFF1F5F9),
+                    letterSpacing: 0.5,
+                  ),
+                ),
                 const SizedBox(height: 3),
-                Text(a['sub'] as String, style: TextStyle(fontSize: 10, color: kWhite54, height: 1.25), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  a['sub'] as String,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF94A3B8),
+                    height: 1.25,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -2015,7 +2109,7 @@ class _DashboardPageState extends State<DashboardPage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('NDIKA EXECUTION',
+                    const Text('NDIKA BASE',
                       style: TextStyle(
                         color: kWhite, fontSize: 20, fontWeight: FontWeight.bold,
                         fontFamily: 'Orbitron', letterSpacing: 1.5,
@@ -2216,12 +2310,13 @@ class _DashboardPageState extends State<DashboardPage>
                           children: [
                             _AnimatedDot(color: cyan, size: 5),
                             const SizedBox(width: 8),
-                            Text('Powered by @alannxd',
+                            Text('NDIKA BASE PROTOCOL • @NdikaOfficial',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.4,
+                                color: Colors.white.withOpacity(0.85),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Orbitron',
+                                letterSpacing: 0.8,
                               )),
                             const SizedBox(width: 8),
                             _AnimatedDot(color: cyan, size: 5),
@@ -3208,39 +3303,56 @@ class _DashboardPageState extends State<DashboardPage>
   // ── AppBar ────────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF070B14),
       elevation: 0,
       centerTitle: true,
-      iconTheme: const IconThemeData(color: Color(0xFF1A1A1A)),
+      iconTheme: const IconThemeData(color: Color(0xFFF1F5F9)),
       leading: Builder(
         builder: (ctx) => IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: kOrange,
+              color: const Color(0xFF0D1527),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF1E3255)),
             ),
-            child: const Icon(Icons.menu, color: Colors.white, size: 20),
+            child: const Icon(Icons.menu_rounded, color: Color(0xFF00E5FF), size: 20),
           ),
           onPressed: () => Scaffold.of(ctx).openDrawer(),
         ),
       ),
       title: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFFE3F2FD),
+          color: const Color(0xFF0D1527),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF1E3255)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00E5FF).withOpacity(0.15),
+              blurRadius: 10,
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset('assets/images/logo.png', width: 24, height: 24, fit: BoxFit.cover,
-                errorBuilder: (_,__,___) => const Icon(Icons.rocket, size: 20, color: Color(0xFF1976D2))),
+              child: Image.asset('assets/images/logo.png', width: 22, height: 22, fit: BoxFit.cover,
+                errorBuilder: (_,__,___) => const Icon(Icons.bolt_rounded, size: 20, color: Color(0xFF00E5FF))),
             ),
             const SizedBox(width: 8),
-            const Text('NDIKA BASE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+            const Text(
+              'NDIKA BASE',
+              style: TextStyle(
+                fontFamily: 'Orbitron',
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF00E5FF),
+                letterSpacing: 1.2,
+              ),
+            ),
           ],
         ),
       ),
@@ -3249,10 +3361,11 @@ class _DashboardPageState extends State<DashboardPage>
           icon: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: kOrange,
+              color: const Color(0xFF0D1527),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF1E3255)),
             ),
-            child: const Icon(Icons.settings, color: Colors.white, size: 20),
+            child: const Icon(Icons.person_rounded, color: Color(0xFF00E5FF), size: 20),
           ),
           onPressed: () => Navigator.push(
             context,
@@ -3280,10 +3393,11 @@ class _DashboardPageState extends State<DashboardPage>
 
     return Container(
       decoration: BoxDecoration(
-        color: isMenuPage ? const Color(0xFF0A0E17) : Colors.white,
+        color: const Color(0xFF070B14),
+        border: Border(top: BorderSide(color: const Color(0xFF1E3255).withOpacity(0.8), width: 1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withOpacity(0.5),
             blurRadius: 16,
             offset: const Offset(0, -3),
           ),
@@ -3293,15 +3407,13 @@ class _DashboardPageState extends State<DashboardPage>
         top: false,
         child: Container(
           height: 64,
-          margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+          margin: const EdgeInsets.fromLTRB(12, 4, 12, 6),
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: isMenuPage
-              ? BoxDecoration(
-                  color: const Color(0xFF12182A),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
-                )
-              : null,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D1527),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFF1E3255)),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(items.length, (i) {
@@ -3317,10 +3429,16 @@ class _DashboardPageState extends State<DashboardPage>
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: active
                       ? BoxDecoration(
-                          color: isMenuPage
-                              ? const Color(0xFF7C4DFF)
-                              : kOrange,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00E5FF), Color(0xFF0284C7)],
+                          ),
                           borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00E5FF).withOpacity(0.35),
+                              blurRadius: 8,
+                            ),
+                          ],
                         )
                       : null,
                   child: Column(
@@ -3329,20 +3447,20 @@ class _DashboardPageState extends State<DashboardPage>
                       Icon(
                         item['icon'] as IconData,
                         color: active
-                            ? Colors.white
-                            : (isMenuPage
-                                ? Colors.white.withOpacity(0.4)
-                                : const Color(0xFF9E9E9E)),
-                        size: 22,
+                            ? const Color(0xFF070B14)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
                       ),
                       if (active) ...[
                         const SizedBox(height: 2),
                         Text(
                           item['label'] as String,
                           style: const TextStyle(
-                            color: Colors.white,
+                            fontFamily: 'Orbitron',
+                            color: Color(0xFF070B14),
                             fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],

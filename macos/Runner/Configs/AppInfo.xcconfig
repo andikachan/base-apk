@@ -8,7 +8,7 @@
 PRODUCT_NAME = xxo25
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.nullx.xxo25
+PRODUCT_BUNDLE_IDENTIFIER = com.ndika.base
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.nullx. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.ndika.base. All rights reserved.
