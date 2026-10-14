@@ -51,6 +51,7 @@ flutter:
     - assets/images/logo.jpg
     - assets/images/logo.png
     - assets/images/login.png
+    - assets/images/login.jpg
     - assets/images/reze.png
     - assets/videos/landing.mp4
     - assets/videos/splash.mp4

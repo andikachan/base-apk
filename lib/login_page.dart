@@ -360,9 +360,13 @@ class _LoginPageState extends State<LoginPage> {
                             fit: StackFit.expand,
                             children: [
                               Image.asset(
-                                'assets/images/login.png',
+                                'assets/images/login.jpg',
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(color: _surface),
+                                errorBuilder: (_, __, ___) => Image.asset(
+                                  'assets/images/login.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(color: _surface),
+                                ),
                               ),
                               Container(
                                 decoration: BoxDecoration(
