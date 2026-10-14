@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'api_config.dart';
+import 'pairing_page.dart';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 class _C {
@@ -218,77 +219,18 @@ class _BugSenderPageState extends State<BugSenderPage>
 
   // ─── Dialogs ────────────────────────────────────────────────────────────────
   void _showAddSenderDialog() {
-    final phoneCtrl = TextEditingController();
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: '',
-      barrierColor: Colors.black87,
-      transitionDuration: const Duration(milliseconds: 350),
-      transitionBuilder: (_, anim, __, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.15),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-        child: FadeTransition(opacity: anim, child: child),
-      ),
-      pageBuilder: (ctx, _, __) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: _DialogShell(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(children: [
-                _DialogIcon(icon: Icons.add_link_rounded, color: _C.blueMid),
-                const SizedBox(width: 14),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Tambah Sender',
-                        style: TextStyle(color: _C.text, fontSize: 17,
-                            fontWeight: FontWeight.w700)),
-                    Text('Masukkan nomor WhatsApp',
-                        style: TextStyle(color: _C.textSub, fontSize: 12)),
-                  ],
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _InputField(
-                controller: phoneCtrl,
-                label: 'Nomor Telepon',
-                hint: '628xxx',
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 20),
-              Row(children: [
-                Expanded(child: _OutlineBtn(
-                  label: 'Batal',
-                  onTap: () => Navigator.pop(ctx),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: _GradBtn(
-                  label: 'Generate Pairing',
-                  icon: Icons.link_rounded,
-                  onTap: () {
-                    final num = phoneCtrl.text.trim();
-                    if (num.isEmpty) {
-                      _toast('Masukkan nomor telepon', error: true);
-                      return;
-                    }
-                    Navigator.pop(ctx);
-                    _addSender(num);
-                  },
-                )),
-              ]),
-            ],
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PairingPage(
+          sessionKey: widget.sessionKey,
+          username: widget.username,
+          role: widget.role,
         ),
       ),
-    );
+    ).then((_) {
+      _fetchSenders();
+    });
   }
 
   void _showPairingCodeDialog(String number, String code) {

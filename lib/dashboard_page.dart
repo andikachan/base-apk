@@ -25,6 +25,7 @@ import 'change_password_page.dart';
 import 'tools_gateway.dart';
 import 'login_page.dart';
 import 'bug_sender.dart';
+import 'pairing_page.dart';
 import 'contact_page.dart';
 import 'profile_page.dart';
 import 'riwayat_page.dart';
@@ -1687,7 +1688,7 @@ class _DashboardPageState extends State<DashboardPage>
               onPressed: () {
                 Navigator.push(
                   context,
-                  _slideRoute(BugSenderPage(
+                  _slideRoute(PairingPage(
                     sessionKey: sessionKey,
                     username: username,
                     role: role,
@@ -1730,7 +1731,7 @@ class _DashboardPageState extends State<DashboardPage>
         'tap': () {
           Navigator.push(
             context,
-            _slideRoute(BugSenderPage(
+            _slideRoute(PairingPage(
               sessionKey: sessionKey,
               username: username,
               role: role,
@@ -3456,7 +3457,7 @@ class _DashboardPageState extends State<DashboardPage>
                       Navigator.pop(context);
                       Navigator.push(
                         context,
-                        _slideRoute(BugSenderPage(
+                        _slideRoute(PairingPage(
                           sessionKey: sessionKey,
                           username: username,
                           role: role,

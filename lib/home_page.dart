@@ -8,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'api_config.dart';
 import 'bug_sender.dart';
+import 'pairing_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -287,7 +288,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => BugSenderPage(
+                      builder: (_) => PairingPage(
                         sessionKey: widget.sessionKey,
                         username: widget.username,
                         role: widget.role,
@@ -817,7 +818,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => BugSenderPage(
+                  builder: (_) => PairingPage(
                     sessionKey: widget.sessionKey,
                     username: widget.username,
                     role: widget.role,
@@ -880,7 +881,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => BugSenderPage(
+                          builder: (_) => PairingPage(
                             sessionKey: widget.sessionKey,
                             username: widget.username,
                             role: widget.role,
