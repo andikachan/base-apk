@@ -287,6 +287,28 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       child: Column(
         children: [
+          Container(
+            width: 58,
+            height: 58,
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: _C.blueLight.withOpacity(0.35),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/logo.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(Icons.info_outline_rounded, color: _C.blueLight, size: 28),
+              ),
+            ),
+          ),
           // Title dengan efek gradient
           ShaderMask(
             shaderCallback: (rect) => const LinearGradient(

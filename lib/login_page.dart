@@ -338,43 +338,97 @@ class _LoginPageState extends State<LoginPage> {
 
                       const SizedBox(height: 10),
 
-                      // Shield Crest Logo
+                      // Cyber Art Banner using assets/images/login.png & logo.png
                       Container(
-                        width: 80,
-                        height: 80,
+                        height: 145,
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _surface,
-                          border: Border.all(color: _cyan.withOpacity(0.5), width: 2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _cyan.withOpacity(0.35)),
                           boxShadow: [
                             BoxShadow(
-                              color: _cyan.withOpacity(0.3),
+                              color: _cyan.withOpacity(0.18),
                               blurRadius: 20,
+                              offset: const Offset(0, 6),
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.shield_rounded, color: _cyan, size: 40),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      const Text(
-                        'NDIKA BASE',
-                        style: TextStyle(
-                          fontFamily: 'Orbitron',
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: _text,
-                          letterSpacing: 3,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(19),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                'assets/images/login.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(color: _surface),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.transparent,
+                                      _bg.withOpacity(0.85),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 12,
+                                left: 14,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: _cyan, width: 1.5),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: _cyan.withOpacity(0.4),
+                                            blurRadius: 10,
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipOval(
+                                        child: Image.asset(
+                                          'assets/images/logo.png',
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.security, color: _cyan),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'NDIKA BASE',
+                                          style: TextStyle(
+                                            fontFamily: 'Orbitron',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w900,
+                                            color: _text,
+                                            letterSpacing: 2,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Cyber Security & Automation Protocol',
+                                          style: TextStyle(fontSize: 10.5, color: _cyan),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Cyber Security & Automation Protocol',
-                        style: TextStyle(fontSize: 12, color: _textSub),
-                      ),
-
-                      const SizedBox(height: 32),
 
                       // Glassmorphic Input Card
                       Container(

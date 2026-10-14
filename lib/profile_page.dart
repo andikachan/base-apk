@@ -152,6 +152,28 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _C.blueLight.withOpacity(0.5)),
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.bolt, color: _C.blueLight, size: 18),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -197,10 +219,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                   _profileImage!,
                                   fit: BoxFit.cover,
                                 )
-                              : Icon(
-                                  FontAwesomeIcons.userAstronaut,
-                                  size: 50,
-                                  color: _C.white.withOpacity(0.8),
+                              : Image.asset(
+                                  'assets/images/reze.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    FontAwesomeIcons.userAstronaut,
+                                    size: 50,
+                                    color: _C.white.withOpacity(0.8),
+                                  ),
                                 ),
                         ),
                       ),

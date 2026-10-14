@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'login_page.dart';
 
@@ -14,6 +15,8 @@ class _LandingPageState extends State<LandingPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
+  VideoPlayerController? _videoCtrl;
+  bool _videoReady = false;
 
   // ── Palette ──
   static const Color _bg = Color(0xFF070B14);
@@ -36,11 +39,27 @@ class _LandingPageState extends State<LandingPage>
     _pulseAnim = Tween<double>(begin: 0.85, end: 1.15).animate(
       CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
+
+    _initVideo();
+  }
+
+  void _initVideo() {
+    _videoCtrl = VideoPlayerController.asset('assets/videos/landing.mp4')
+      ..initialize().then((_) {
+        if (!mounted) return;
+        setState(() => _videoReady = true);
+        _videoCtrl?.setLooping(true);
+        _videoCtrl?.setVolume(0);
+        _videoCtrl?.play();
+      }).catchError((_) {
+        if (mounted) setState(() => _videoReady = false);
+      });
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
+    _videoCtrl?.dispose();
     super.dispose();
   }
 
@@ -66,6 +85,26 @@ class _LandingPageState extends State<LandingPage>
       backgroundColor: _bg,
       body: Stack(
         children: [
+          // Background Video
+          if (_videoCtrl != null && _videoReady)
+            Positioned.fill(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _videoCtrl!.value.size.width,
+                  height: _videoCtrl!.value.size.height,
+                  child: VideoPlayer(_videoCtrl!),
+                ),
+              ),
+            ),
+
+          // Dark Overlay for readability
+          Positioned.fill(
+            child: Container(
+              color: _bg.withOpacity(0.78),
+            ),
+          ),
+
           // Cyber Ambient Glow Orbs
           Positioned(
             top: -80,
@@ -162,7 +201,7 @@ class _LandingPageState extends State<LandingPage>
 
                   const SizedBox(height: 28),
 
-                  // Brand Hero Emblem
+                  // Brand Hero Emblem with Logo Asset
                   Container(
                     width: 96,
                     height: 96,
@@ -175,7 +214,7 @@ class _LandingPageState extends State<LandingPage>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _cyan.withOpacity(0.4),
+                          color: _cyan.withOpacity(0.5),
                           blurRadius: 28,
                           spreadRadius: 2,
                         ),
@@ -189,10 +228,18 @@ class _LandingPageState extends State<LandingPage>
                           shape: BoxShape.circle,
                           color: _surface,
                         ),
-                        child: const Icon(
-                          Icons.security_rounded,
-                          color: _cyan,
-                          size: 44,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            width: 88,
+                            height: 88,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.security_rounded,
+                              color: _cyan,
+                              size: 44,
+                            ),
+                          ),
                         ),
                       ),
                     ),

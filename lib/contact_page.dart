@@ -269,10 +269,19 @@ class _ContactPageState extends State<ContactPage>
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.support_agent_rounded,
-                          color: Colors.white,
-                          size: 32,
+                        child: ClipOval(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.support_agent_rounded,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],

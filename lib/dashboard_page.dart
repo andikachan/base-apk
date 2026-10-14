@@ -1719,6 +1719,9 @@ class _DashboardPageState extends State<DashboardPage>
             // PAIRING BOT WA HERO CARD
             _buildPairingBotCard(),
             const SizedBox(height: 18),
+            // CYBER VIDEO SHOWCASE (plays assets/videos/banner.mp4)
+            _buildBannerVideo(),
+            const SizedBox(height: 18),
             // Quick Actions title
             Row(
               children: [
@@ -1782,7 +1785,15 @@ class _DashboardPageState extends State<DashboardPage>
                 backgroundColor: kCyan.withOpacity(0.15),
                 child: _profileImage != null
                     ? ClipOval(child: Image.file(_profileImage!, width: 52, height: 52, fit: BoxFit.cover))
-                    : Icon(Icons.person, color: kCyan, size: 28),
+                    : ClipOval(
+                        child: Image.asset(
+                          'assets/images/reze.png',
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.person, color: kCyan, size: 28),
+                        ),
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -2217,75 +2228,150 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   Widget _buildBannerVideo() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.4), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00E5FF).withOpacity(0.12),
+            blurRadius: 16,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          height: 170, width: double.infinity,
-          color: const Color(0xFF061018),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (_menuVideoCtrl != null && _menuVideoCtrl!.value.isInitialized)
-                FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: _menuVideoCtrl!.value.size.width,
-                    height: _menuVideoCtrl!.value.size.height,
-                    child: VideoPlayer(_menuVideoCtrl!),
-                  ),
-                )
-              else
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF0A1A2E), Color(0xFF0D2137), Color(0xFF061018)],
-                      begin: Alignment.topLeft, end: Alignment.bottomRight,
-                    ),
-                  ),
+        borderRadius: BorderRadius.circular(19),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_menuVideoCtrl != null && _menuVideoCtrl!.value.isInitialized)
+              FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _menuVideoCtrl!.value.size.width,
+                  height: _menuVideoCtrl!.value.size.height,
+                  child: VideoPlayer(_menuVideoCtrl!),
                 ),
-              // Dark gradient overlay
+              )
+            else
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.55),
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.65),
-                    ],
-                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                    colors: [Color(0xFF0A1A2E), Color(0xFF0D2137), Color(0xFF061018)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                 ),
               ),
-              // Bottom title
-              Positioned(
-                left: 16, bottom: 16, right: 16,
+            // Dark gradient overlay
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.45),
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.80),
+                  ],
+                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            // Top tag
+            Positioned(
+              top: 14, left: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.black.withOpacity(0.55),
+                  border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.4)),
+                ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('NDIKA BASE',
-                      style: TextStyle(
-                        color: kWhite, fontSize: 20, fontWeight: FontWeight.bold,
-                        fontFamily: 'Orbitron', letterSpacing: 1.5,
-                        shadows: [Shadow(color: kCyan, blurRadius: 12)],
+                    Container(
+                      width: 6, height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: kCyan.withOpacity(0.6)),
-                        color: kCyan.withOpacity(0.12),
+                    const SizedBox(width: 6),
+                    const Text('OFFICIAL SHOWCASE',
+                      style: TextStyle(
+                        color: Color(0xFF00E5FF),
+                        fontSize: 9,
+                        fontFamily: 'Orbitron',
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
                       ),
-                      child: const Text('LIVE',
-                        style: TextStyle(color: kCyan, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // Bottom title & logo branding
+            Positioned(
+              left: 16, bottom: 14, right: 16,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32, height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.7)),
+                          boxShadow: [
+                            BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.4), blurRadius: 8),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.bolt, color: Color(0xFF00E5FF), size: 18),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'NDIKA BASE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Orbitron',
+                          letterSpacing: 1.5,
+                          shadows: [Shadow(color: Color(0xFF00E5FF), blurRadius: 14)],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.7)),
+                      color: const Color(0xFF00E5FF).withOpacity(0.18),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.play_circle_fill_rounded, color: Color(0xFF00E5FF), size: 13),
+                        SizedBox(width: 4),
+                        Text('LIVE',
+                          style: TextStyle(color: Color(0xFF00E5FF), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -2366,11 +2452,17 @@ class _DashboardPageState extends State<DashboardPage>
                                 color: Color(0xFF0A0E17),
                               ),
                               child: ClipOval(
-                                child: Image.asset(
-                                  'assets/images/logo.png',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.bolt, color: cyan, size: 28),
-                                ),
+                                child: _profileImage != null
+                                    ? Image.file(_profileImage!, fit: BoxFit.cover)
+                                    : Image.asset(
+                                        'assets/images/reze.png',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Image.asset(
+                                          'assets/images/logo.png',
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.bolt, color: cyan, size: 28),
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -3676,7 +3768,11 @@ class _DashboardPageState extends State<DashboardPage>
                           child: ClipOval(
                             child: _profileImage != null
                                 ? Image.file(_profileImage!, fit: BoxFit.cover)
-                                : const Icon(FontAwesomeIcons.userAstronaut, size: 38, color: kWhite),
+                                : Image.asset(
+                                    'assets/images/reze.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(FontAwesomeIcons.userAstronaut, size: 38, color: kWhite),
+                                  ),
                           ),
                         ),
                         const SizedBox(height: 12),
