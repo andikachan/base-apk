@@ -42,6 +42,40 @@ class _PairingPageState extends State<PairingPage>
   final TextEditingController _phoneCtrl = TextEditingController();
   final FocusNode _phoneFocus = FocusNode();
 
+  // Country code state (supports Indonesia & ALL international countries)
+  String _selectedCountryCode = '62';
+  String _selectedCountryFlag = '🇮🇩';
+  String _selectedCountryName = 'Indonesia';
+
+  final List<Map<String, String>> _countryList = const [
+    {'flag': '🇮🇩', 'name': 'Indonesia', 'code': '62'},
+    {'flag': '🇲🇾', 'name': 'Malaysia', 'code': '60'},
+    {'flag': '🇸🇬', 'name': 'Singapura', 'code': '65'},
+    {'flag': '🇺🇸', 'name': 'Amerika Serikat', 'code': '1'},
+    {'flag': '🇬🇧', 'name': 'Inggris (UK)', 'code': '44'},
+    {'flag': '🇮🇳', 'name': 'India', 'code': '91'},
+    {'flag': '🇵🇭', 'name': 'Filipina', 'code': '63'},
+    {'flag': '🇻🇳', 'name': 'Vietnam', 'code': '84'},
+    {'flag': '🇹🇭', 'name': 'Thailand', 'code': '66'},
+    {'flag': '🇸🇦', 'name': 'Arab Saudi', 'code': '966'},
+    {'flag': '🇦🇪', 'name': 'Uni Emirat Arab', 'code': '971'},
+    {'flag': '🇧🇷', 'name': 'Brasil', 'code': '55'},
+    {'flag': '🇷🇺', 'name': 'Rusia', 'code': '7'},
+    {'flag': '🇯🇵', 'name': 'Jepang', 'code': '81'},
+    {'flag': '🇰🇷', 'name': 'Korea Selatan', 'code': '82'},
+    {'flag': '🇩🇪', 'name': 'Jerman', 'code': '49'},
+    {'flag': '🇫🇷', 'name': 'Prancis', 'code': '33'},
+    {'flag': '🇦🇺', 'name': 'Australia', 'code': '61'},
+    {'flag': '🇹🇷', 'name': 'Turki', 'code': '90'},
+    {'flag': '🇵🇰', 'name': 'Pakistan', 'code': '92'},
+    {'flag': '🇧🇩', 'name': 'Bangladesh', 'code': '880'},
+    {'flag': '🇳🇱', 'name': 'Belanda', 'code': '31'},
+    {'flag': '🇪🇸', 'name': 'Spanyol', 'code': '34'},
+    {'flag': '🇮🇹', 'name': 'Italia', 'code': '39'},
+    {'flag': '🇨🇦', 'name': 'Kanada', 'code': '1'},
+    {'flag': '🌐', 'name': 'Semua / Manual (Ketik Bebas)', 'code': ''},
+  ];
+
   bool _isGenerating = false;
   String? _generatedPairingCode;
   String? _pairedNumber;
@@ -125,13 +159,165 @@ class _PairingPageState extends State<PairingPage>
   }
 
   String _cleanNumber(String input) {
-    String num = input.replaceAll(RegExp(r'[^0-9]'), '');
-    if (num.startsWith('0')) {
-      num = '62${num.substring(1)}';
-    } else if (num.startsWith('8')) {
-      num = '62$num';
+    String text = input.trim();
+    // Jika user menginput diawali tanda +, gunakan nomor internasional langsung
+    if (text.startsWith('+')) {
+      return text.replaceAll(RegExp(r'[^0-9]'), '');
     }
-    return num;
+    String digits = text.replaceAll(RegExp(r'[^0-9]'), '');
+    // Mode manual: gunakan digit apa adanya
+    if (_selectedCountryCode.isEmpty) {
+      return digits;
+    }
+    // Jika diawali 0, buang 0 (misal 0812... -> 812...)
+    if (digits.startsWith('0')) {
+      digits = digits.substring(1);
+    }
+    // Jika input sudah diawali kode negara yang dipilih, jangan diduplikasi
+    if (digits.startsWith(_selectedCountryCode)) {
+      return digits;
+    }
+    return '$_selectedCountryCode$digits';
+  }
+
+  void _showCountryPicker() {
+    String searchQuery = '';
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        side: BorderSide(color: _border, width: 1),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final filtered = _countryList.where((c) {
+              final q = searchQuery.toLowerCase();
+              return c['name']!.toLowerCase().contains(q) ||
+                  c['code']!.contains(q);
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.65,
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 20),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: _textSub.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      const Icon(Icons.public_rounded, color: _cyan, size: 20),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'PILIH KODE NEGARA',
+                        style: TextStyle(
+                          fontFamily: 'Orbitron',
+                          color: _text,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: _textSub, size: 20),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: _cardInner,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _border),
+                    ),
+                    child: TextField(
+                      style: const TextStyle(color: _text, fontSize: 13),
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.search_rounded, color: _cyan, size: 18),
+                        border: InputBorder.none,
+                        hintText: 'Cari negara atau kode (cth: Indonesia, 62, 1)',
+                        hintStyle: TextStyle(color: Color(0xFF475569), fontSize: 12),
+                      ),
+                      onChanged: (val) {
+                        setModalState(() => searchQuery = val);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => Divider(
+                        color: _border.withOpacity(0.4),
+                        height: 1,
+                      ),
+                      itemBuilder: (context, idx) {
+                        final item = filtered[idx];
+                        final isSelected = item['code'] == _selectedCountryCode;
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          leading: Text(item['flag']!, style: const TextStyle(fontSize: 22)),
+                          title: Text(
+                            item['name']!,
+                            style: TextStyle(
+                              color: isSelected ? _cyan : _text,
+                              fontSize: 13.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            ),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSelected ? _cyan.withOpacity(0.2) : _cardInner,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isSelected ? _cyan : _border,
+                              ),
+                            ),
+                            child: Text(
+                              item['code']!.isEmpty ? 'MANUAL' : '+${item['code']}',
+                              style: TextStyle(
+                                color: isSelected ? _cyan : _textSub,
+                                fontFamily: 'ShareTechMono',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _selectedCountryCode = item['code']!;
+                              _selectedCountryFlag = item['flag']!;
+                              _selectedCountryName = item['name']!;
+                            });
+                            Navigator.pop(ctx);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _fetchActiveSenders() async {
@@ -176,8 +362,8 @@ class _PairingPageState extends State<PairingPage>
     }
 
     final formattedNumber = _cleanNumber(raw);
-    if (formattedNumber.length < 10) {
-      _showToast('Nomor telepon tidak valid (terlalu pendek)', isError: true);
+    if (formattedNumber.length < 8) {
+      _showToast('Nomor telepon tidak valid (minimal 8 digit)', isError: true);
       return;
     }
 
@@ -190,12 +376,16 @@ class _PairingPageState extends State<PairingPage>
     try {
       final res = await http.get(
         Uri.parse('$baseUrl/getPairing?key=${widget.sessionKey}&number=$formattedNumber'),
-      ).timeout(const Duration(seconds: 20));
+      ).timeout(const Duration(seconds: 30));
 
       if (!mounted) return;
       final data = jsonDecode(res.body);
 
-      if (data['status'] == true && data['pairingCode'] != null) {
+      // Support valid: true (standar response server), status: true, atau pairingCode != null
+      final bool hasCode = data['pairingCode'] != null && data['pairingCode'].toString().trim().isNotEmpty;
+      final bool isValid = (data['valid'] == true) || (data['status'] == true) || hasCode;
+
+      if (isValid && hasCode) {
         final code = data['pairingCode'].toString().trim();
         setState(() {
           _generatedPairingCode = code;
@@ -208,7 +398,8 @@ class _PairingPageState extends State<PairingPage>
         _showToast('Kode pairing berhasil di-generate!');
       } else {
         setState(() => _isGenerating = false);
-        _showToast(data['message']?.toString() ?? 'Gagal membuat kode pairing', isError: true);
+        final errMsg = data['message'] ?? data['error'] ?? 'Gagal membuat kode pairing. Pastikan nomor aktif & benar.';
+        _showToast(errMsg.toString(), isError: true);
       }
     } catch (e) {
       if (mounted) {
@@ -267,14 +458,14 @@ class _PairingPageState extends State<PairingPage>
     try {
       final res = await http.get(
         Uri.parse('$baseUrl/deleteSender?key=${widget.sessionKey}&id=$senderId'),
-      ).timeout(const Duration(seconds: 12));
+      ).timeout(const Duration(seconds: 15));
 
       final data = jsonDecode(res.body);
-      if (data['status'] == true) {
+      if (data['valid'] == true || data['status'] == true) {
         _showToast('Sesi WhatsApp berhasil diputus');
         _fetchActiveSenders();
       } else {
-        _showToast(data['message'] ?? 'Gagal menghapus sesi', isError: true);
+        _showToast(data['message'] ?? data['error'] ?? 'Gagal menghapus sesi', isError: true);
       }
     } catch (e) {
       _showToast('Gagal memutus sesi: $e', isError: true);
@@ -637,26 +828,35 @@ class _PairingPageState extends State<PairingPage>
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
             child: Row(
               children: [
-                // Country Code Chip
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _surface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _border),
-                  ),
-                  child: const Row(
-                    children: [
-                      Text('🇮🇩', style: TextStyle(fontSize: 16)),
-                      SizedBox(width: 6),
-                      Text('+62',
-                        style: TextStyle(
-                          color: _text,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          fontFamily: 'ShareTechMono',
-                        )),
-                    ],
+                // Interactive Country Code Chip (Tap to change country)
+                InkWell(
+                  onTap: _showCountryPicker,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: _surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: _cyan.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_selectedCountryFlag, style: const TextStyle(fontSize: 16)),
+                        const SizedBox(width: 6),
+                        Text(
+                          _selectedCountryCode.isEmpty ? '🌐' : '+$_selectedCountryCode',
+                          style: const TextStyle(
+                            color: _text,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            fontFamily: 'ShareTechMono',
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_drop_down_rounded, color: _cyan, size: 18),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -673,12 +873,18 @@ class _PairingPageState extends State<PairingPage>
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: '81234567890',
-                      hintStyle: TextStyle(
+                      hintText: _selectedCountryCode == '62'
+                          ? '81234567890'
+                          : _selectedCountryCode == '1'
+                              ? '2025550123'
+                              : _selectedCountryCode.isEmpty
+                                  ? '+628xxx / +1xxx'
+                                  : 'Nomor WhatsApp...',
+                      hintStyle: const TextStyle(
                         color: Color(0xFF475569),
-                        fontSize: 15,
+                        fontSize: 14,
                         fontFamily: 'ShareTechMono',
                         letterSpacing: 1.5,
                       ),
@@ -697,14 +903,20 @@ class _PairingPageState extends State<PairingPage>
 
           // Format tips
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline_rounded, color: _textSub.withOpacity(0.7), size: 13),
+              Icon(Icons.public_rounded, color: _cyan.withOpacity(0.8), size: 13),
               const SizedBox(width: 6),
-              Text(
-                'Awalan 0 atau 62 akan otomatis disesuaikan.',
-                style: TextStyle(
-                  color: _textSub.withOpacity(0.7),
-                  fontSize: 11,
+              Expanded(
+                child: Text(
+                  _selectedCountryCode.isEmpty
+                      ? 'Mode Manual: Ketik nomor lengkap dengan kode negara (cth: 628xxx / 1202xxx)'
+                      : 'Negara: $_selectedCountryName (+$_selectedCountryCode). Bisa langsung ketik nomor atau awalan +',
+                  style: TextStyle(
+                    color: _textSub.withOpacity(0.8),
+                    fontSize: 11,
+                    height: 1.25,
+                  ),
                 ),
               ),
             ],
