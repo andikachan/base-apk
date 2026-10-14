@@ -2618,12 +2618,12 @@ class _DashboardPageState extends State<DashboardPage>
         onTap: () => Navigator.push(context, _slideRoute(AlQuranPage())),
       ),
       _QuickActionData(
-        icon: FontAwesomeIcons.tv,
-        bgIcon: FontAwesomeIcons.tv,
-        title: 'Anime',
-        subtitle: 'Discover & Watch Anime',
-        gradient: [const Color(0xFFFF6D00), const Color(0xFFE65100)],
-        onTap: () => Navigator.push(context, _slideRoute(HomeAnimePage())),
+        icon: Icons.construction_rounded,
+        bgIcon: Icons.construction_rounded,
+        title: 'Arsenal Hub',
+        subtitle: 'OSINT & Utilities Suite',
+        gradient: [const Color(0xFF00E5FF), const Color(0xFF0284C7)],
+        onTap: () => setState(() => _navIndex = 3),
       ),
     ];
 

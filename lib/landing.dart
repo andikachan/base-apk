@@ -359,9 +359,9 @@ class _LandingPageState extends State<LandingPage>
                   ),
                   const SizedBox(height: 10),
                   _buildFeatureCard(
-                    icon: Icons.play_circle_filled_rounded,
-                    title: 'MEDIA & AL-QURAN',
-                    subtitle: 'Al-Quran digital komplit dan portal streaming anime sub-indo',
+                    icon: Icons.menu_book_rounded,
+                    title: 'ISLAMI & AL-QURAN',
+                    subtitle: 'Al-Quran digital komplit dengan audio & terjemahan',
                     gradient: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
                   ),
 
