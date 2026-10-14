@@ -840,7 +840,7 @@ class _OrcaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title:           'NDIKA',
+      title:           'NDIKA BASE',
       theme:           _AppTheme.build(),
       initialRoute:    '/',
       onGenerateRoute: _generateRoute,

@@ -9,7 +9,7 @@ class SplashScreen extends StatefulWidget {
   final String expiredDate;
   final String sessionKey;
   final List<Map<String, dynamic>> listBug;
-  final List<Map<String, dynamic>> listDoos;
+  final List<Map<String, dynamic>>? listDoos;
   final List<dynamic> news;
 
   const SplashScreen({
@@ -20,7 +20,7 @@ class SplashScreen extends StatefulWidget {
     required this.expiredDate,
     required this.sessionKey,
     required this.listBug,
-    required this.listDoos,
+    this.listDoos = const [],
     required this.news,
   });
 
@@ -180,7 +180,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'EXPLOIT & AUTOMATION SUITE',
+                  'NDIKA BASE PROTOCOL',
                   style: TextStyle(
                     color: const Color(0xFF00F2FE).withOpacity(0.85),
                     fontSize: 11,

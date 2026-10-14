@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'login_page.dart';
@@ -11,34 +12,39 @@ class LandingPage extends StatefulWidget {
 
 class _LandingPageState extends State<LandingPage>
     with SingleTickerProviderStateMixin {
-  late AnimationController _fadeCtrl;
-  late Animation<double> _fadeAnim;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
 
-  // Blue + Red palette
-  static const Color _bg = Color(0xFF050A12);
-  static const Color _blue = Color(0xFF2196F3);
-  static const Color _blueLight = Color(0xFF64B5F6);
-  static const Color _red = Color(0xFFE53935);
-  static const Color _redSoft = Color(0xFFFF5252);
+  // ── Palette ──
+  static const Color _bg = Color(0xFF070B14);
+  static const Color _surface = Color(0xFF0D1527);
+  static const Color _card = Color(0xFF111D35);
+  static const Color _cyan = Color(0xFF00E5FF);
+  static const Color _blueMid = Color(0xFF0284C7);
+  static const Color _purple = Color(0xFF9D4EDD);
+  static const Color _text = Color(0xFFF1F5F9);
+  static const Color _textSub = Color(0xFF94A3B8);
 
   @override
   void initState() {
     super.initState();
-    _fadeCtrl = AnimationController(
+    _pulseCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+
+    _pulseAnim = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
-    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic);
-    _fadeCtrl.forward();
   }
 
   @override
   void dispose() {
-    _fadeCtrl.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _buyAccess() async {
+  Future<void> _openSupport() async {
     final uri = Uri.parse('https://t.me/NdikaOfficial');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
@@ -46,7 +52,11 @@ class _LandingPageState extends State<LandingPage>
   void _enterLogin() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const LoginPage(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
     );
   }
 
@@ -56,202 +66,199 @@ class _LandingPageState extends State<LandingPage>
       backgroundColor: _bg,
       body: Stack(
         children: [
-          // Grid background
+          // Cyber Ambient Glow Orbs
+          Positioned(
+            top: -80,
+            right: -60,
+            child: AnimatedBuilder(
+              animation: _pulseAnim,
+              builder: (_, __) => Container(
+                width: 260 * _pulseAnim.value,
+                height: 260 * _pulseAnim.value,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      _cyan.withOpacity(0.18),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    _purple.withOpacity(0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Cyber Grid Painter
           Positioned.fill(
             child: CustomPaint(painter: _LandingGridPainter()),
           ),
-          // Glow orbs
-          Positioned(
-            top: -60,
-            right: -40,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [
-                  _blue.withOpacity(0.18),
-                  Colors.transparent,
-                ]),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            left: -50,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [
-                  _red.withOpacity(0.12),
-                  Colors.transparent,
-                ]),
-              ),
-            ),
-          ),
 
+          // Main Content
           SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
-                child: Column(
-                  children: [
-                    // Banner card
-                    Container(
-                      width: double.infinity,
-                      height: 200,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 10),
+
+                  // Top Status Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _surface,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: _cyan.withOpacity(0.35)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _cyan.withOpacity(0.15),
+                          blurRadius: 12,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF10B981),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'SYSTEM ONLINE  •  NDIKA BASE v6.0',
+                          style: TextStyle(
+                            fontFamily: 'ShareTechMono',
+                            color: _cyan,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // Brand Hero Emblem
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [_cyan, _blueMid, _purple],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _cyan.withOpacity(0.4),
+                          blurRadius: 28,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 88,
+                        height: 88,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _surface,
+                        ),
+                        child: const Icon(
+                          Icons.security_rounded,
+                          color: _cyan,
+                          size: 44,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // App Title
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF00E5FF), Color(0xFF60A5FA), Color(0xFFC084FC)],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'NDIKA BASE',
+                      style: TextStyle(
+                        fontFamily: 'Orbitron',
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 4,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  const Text(
+                    'Next-Gen WhatsApp Automation & Cyber Intelligence Hub',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _textSub,
+                      height: 1.5,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Action Buttons
+                  // 1. Enter System
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: DecoratedBox(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: const Color(0xFF00F2FE).withOpacity(0.55),
-                          width: 1.5,
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [_cyan, _blueMid, _purple],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF00F2FE).withOpacity(0.25),
-                            blurRadius: 24,
-                            spreadRadius: 1,
+                            color: _cyan.withOpacity(0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20.5),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.asset(
-                              'assets/images/login.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFF0D1B2A),
-                                      Color(0xFF1A0A1E),
-                                      Color(0xFF0A1628),
-                                    ],
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Icon(Icons.image, color: Colors.white24, size: 48),
-                                ),
-                              ),
-                            ),
-                            // Bottom gradient for title readability
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.85),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // NDIKA OFFICIAL title
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 18,
-                              child: ShaderMask(
-                                shaderCallback: (b) => const LinearGradient(
-                                  colors: [
-                                    Color(0xFF00F2FE),
-                                    Color(0xFF4FACFE),
-                                    Color(0xFFA855F7),
-                                  ],
-                                ).createShader(b),
-                                child: const Text(
-                                  'NDIKA OFFICIAL',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: 2.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // ENTER LOGIN button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF00F2FE),
-                              Color(0xFF0284C7),
-                              Color(0xFFA855F7),
-                            ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00F2FE).withOpacity(0.4),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: ElevatedButton(
-                          onPressed: _enterLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.arrow_forward_rounded, size: 20),
-                              SizedBox(width: 10),
-                              Text(
-                                'ENTER LOGIN',
-                                style: TextStyle(
-                                  fontFamily: 'Orbitron',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.8,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // BUY ACCESS button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: OutlinedButton(
-                        onPressed: _buyAccess,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: _blue.withOpacity(0.7), width: 1.5),
-                          foregroundColor: _blueLight,
+                      child: ElevatedButton(
+                        onPressed: _enterLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -259,47 +266,118 @@ class _LandingPageState extends State<LandingPage>
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.shopping_cart_outlined, size: 20),
+                            Icon(Icons.lock_open_rounded, size: 20),
                             SizedBox(width: 10),
                             Text(
-                              'BUY ACCESS',
+                              'ACCESS DASHBOARD',
                               style: TextStyle(
                                 fontFamily: 'Orbitron',
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                letterSpacing: 1.5,
+                                letterSpacing: 2,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 28),
+                  const SizedBox(height: 14),
 
-                    // Feature cards
-                    _featureCard(
-                      icon: Icons.bolt_rounded,
-                      title: 'ULTRA FAST',
-                      subtitle: 'Lightning speed performance',
-                      iconColors: const [Color(0xFF2196F3), Color(0xFF7B1FA2)],
+                  // 2. Support / Buy
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: _openSupport,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: _cyan.withOpacity(0.5), width: 1.5),
+                        foregroundColor: _cyan,
+                        backgroundColor: _surface.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.send_rounded, size: 18),
+                          SizedBox(width: 10),
+                          Text(
+                            'OFFICIAL TELEGRAM',
+                            style: TextStyle(
+                              fontFamily: 'Orbitron',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _featureCard(
-                      icon: Icons.shield_rounded,
-                      title: 'SECURE',
-                      subtitle: 'End-to-end encryption',
-                      iconColors: const [Color(0xFF7B1FA2), Color(0xFFE53935)],
+                  ),
+
+                  const SizedBox(height: 36),
+
+                  // Section Header
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'CORE MODULES',
+                      style: TextStyle(
+                        fontFamily: 'Orbitron',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: _cyan,
+                        letterSpacing: 1.5,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _featureCard(
-                      icon: Icons.apps_rounded,
-                      title: 'POWERFUL',
-                      subtitle: 'Advanced tools & features',
-                      iconColors: const [Color(0xFF2196F3), Color(0xFFE53935)],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 4 Feature Cards
+                  _buildFeatureCard(
+                    icon: Icons.bolt_rounded,
+                    title: 'AUTOMATION CORE',
+                    subtitle: 'Payload sender WA ultra cepat dengan proteksi multi-target',
+                    gradient: [_cyan, _blueMid],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildFeatureCard(
+                    icon: Icons.fingerprint_rounded,
+                    title: 'OSINT ARSENAL',
+                    subtitle: 'Verifikasi NIK, deep domain check, phone lookup & email osint',
+                    gradient: [_purple, const Color(0xFF6200EA)],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildFeatureCard(
+                    icon: Icons.dns_rounded,
+                    title: 'SERVER CONTROL',
+                    subtitle: 'Manajemen server Pterodactyl, kontrol node & inspeksi log',
+                    gradient: [const Color(0xFF10B981), const Color(0xFF059669)],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildFeatureCard(
+                    icon: Icons.play_circle_filled_rounded,
+                    title: 'MEDIA & AL-QURAN',
+                    subtitle: 'Al-Quran digital komplit dan portal streaming anime sub-indo',
+                    gradient: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Footer
+                  Text(
+                    'NDIKA OFFICIAL © 2026 • ALL RIGHTS RESERVED',
+                    style: TextStyle(
+                      fontFamily: 'ShareTechMono',
+                      fontSize: 10,
+                      color: _textSub.withOpacity(0.6),
+                      letterSpacing: 1.2,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -308,31 +386,38 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _featureCard({
+  Widget _buildFeatureCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required List<Color> iconColors,
+    required List<Color> gradient,
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1420).withOpacity(0.9),
+        color: _card.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _blue.withOpacity(0.22)),
+        border: Border.all(color: _blueMid.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: iconColors),
+              gradient: LinearGradient(colors: gradient),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: iconColors[0].withOpacity(0.4),
+                  color: gradient[0].withOpacity(0.3),
                   blurRadius: 10,
                 ),
               ],
@@ -346,21 +431,21 @@ class _LandingPageState extends State<LandingPage>
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Orbitron',
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: _blueLight,
-                    letterSpacing: 1.2,
+                    color: _text,
+                    letterSpacing: 1,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _redSoft.withOpacity(0.85),
-                    fontWeight: FontWeight.w500,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: _textSub,
+                    height: 1.3,
                   ),
                 ),
               ],
@@ -376,9 +461,9 @@ class _LandingGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.05)
+      ..color = const Color(0xFF00E5FF).withOpacity(0.04)
       ..strokeWidth = 0.8;
-    const step = 28.0;
+    const step = 32.0;
     for (double x = 0; x < size.width; x += step) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }

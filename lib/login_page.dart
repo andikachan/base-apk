@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'api_config.dart';
 import 'splash.dart';
 
@@ -15,81 +14,77 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
-  final userCtrl = TextEditingController();
-  final passCtrl = TextEditingController();
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final _userCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
 
-  bool _isLoading = false;
   bool _obscurePass = true;
+  bool _isLoading = false;
+  bool _rememberMe = true;
   String? _androidId;
 
-  late AnimationController _entranceCtrl;
-  late Animation<double> _fade;
-  late Animation<Offset> _slide;
-
-  // Neon palette matching the screenshot
-  static const Color _bgDark = Color(0xFF050A12);
-  static const Color _cardDark = Color(0xFF0C1420);
-  static const Color _cyan = Color(0xFF2196F3); // blue primary
-  static const Color _purple = Color(0xFFE53935); // red accent
-  static const Color _fieldBg = Color(0xFF121A28);
-  static const Color _hint = Color(0xFF6B7A8F);
+  // ── Palette ──
+  static const Color _bg = Color(0xFF070B14);
+  static const Color _surface = Color(0xFF0D1527);
+  static const Color _card = Color(0xFF111D35);
+  static const Color _border = Color(0xFF1E3255);
+  static const Color _cyan = Color(0xFF00E5FF);
+  static const Color _blueMid = Color(0xFF0284C7);
+  static const Color _purple = Color(0xFF9D4EDD);
+  static const Color _text = Color(0xFFF1F5F9);
+  static const Color _textSub = Color(0xFF94A3B8);
 
   @override
   void initState() {
     super.initState();
-    _entranceCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 900));
-    _fade = CurvedAnimation(parent: _entranceCtrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
-        .animate(CurvedAnimation(
-            parent: _entranceCtrl, curve: Curves.easeOutCubic));
-    _entranceCtrl.forward();
-    _initLogin();
+    _initDeviceAndAutoLogin();
   }
 
   @override
   void dispose() {
-    _entranceCtrl.dispose();
-    userCtrl.dispose();
-    passCtrl.dispose();
+    _userCtrl.dispose();
+    _passCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _initLogin() async {
-    final info = await DeviceInfoPlugin().androidInfo;
-    _androidId = info.id;
+  Future<void> _initDeviceAndAutoLogin() async {
+    try {
+      final info = await DeviceInfoPlugin().androidInfo;
+      _androidId = info.id;
+    } catch (_) {
+      _androidId = 'device_${DateTime.now().millisecondsSinceEpoch}';
+    }
 
     final prefs = await SharedPreferences.getInstance();
     final savedUser = prefs.getString('username');
     final savedPass = prefs.getString('password');
     final savedKey = prefs.getString('key');
 
-    if (savedUser != null && savedPass != null && savedKey != null) {
-      try {
-        final res = await http.get(Uri.parse(
-            '$baseUrl/myInfo?username=$savedUser&password=$savedPass&androidId=$_androidId&key=$savedKey'));
-        final data = jsonDecode(res.body);
+    if (savedUser != null && savedPass != null) {
+      _userCtrl.text = savedUser;
+      _passCtrl.text = savedPass;
 
-        if (data['valid'] == true && mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) => SplashScreen(
-                      username: savedUser,
-                      password: savedPass,
-                      role: data['role'],
-                      sessionKey: data['key'],
-                      expiredDate: data['expiredDate'],
-                      listBug: _parseList(data['listBug']),
-                      listDoos: _parseList(data['listDDoS']),
-                      news: _parseList(data['news']),
-                    )),
-          );
-        }
-      } catch (_) {}
+      if (savedKey != null) {
+        try {
+          final res = await http.get(Uri.parse(
+              '$baseUrl/myInfo?username=$savedUser&password=$savedPass&androidId=$_androidId&key=$savedKey'))
+              .timeout(const Duration(seconds: 8));
+          final data = jsonDecode(res.body);
+
+          if (data['valid'] == true && mounted) {
+            _navigateToSplash(
+              username: savedUser,
+              password: savedPass,
+              role: data['role'] ?? 'member',
+              sessionKey: data['key'] ?? savedKey,
+              expiredDate: data['expiredDate'] ?? '99999-09-99',
+              listBug: _parseList(data['listBug']),
+              news: _parseList(data['news']),
+            );
+          }
+        } catch (_) {}
+      }
     }
   }
 
@@ -101,115 +96,201 @@ class _LoginPageState extends State<LoginPage>
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final username = userCtrl.text.trim();
-    final password = passCtrl.text.trim();
+    final username = _userCtrl.text.trim();
+    final password = _passCtrl.text.trim();
 
     setState(() => _isLoading = true);
 
     try {
-      final res = await http.post(Uri.parse('$baseUrl/validate'), body: {
-        'username': username,
-        'password': password,
-        'androidId': _androidId ?? 'unknown',
-      });
+      final res = await http.post(
+        Uri.parse('$baseUrl/validate'),
+        body: {
+          'username': username,
+          'password': password,
+          'androidId': _androidId ?? 'unknown_device',
+        },
+      ).timeout(const Duration(seconds: 12));
+
       final data = jsonDecode(res.body);
 
       if (data['expired'] == true) {
         _showAlert(
-          title: 'Akses Habis',
-          message: 'Masa akses Anda telah berakhir. Silakan perpanjang.',
-          isError: false,
-          showContact: true,
+          title: 'AKSES KADALUARSA',
+          message: 'Masa aktif akun telah berakhir. Silakan perpanjang lisensi Anda.',
+          isError: true,
+          showSupport: true,
         );
       } else if (data['valid'] != true) {
         final msg = (data['message'] ?? '').toString().toLowerCase();
-        if (msg.contains('perangkat') ||
-            msg.contains('device') ||
-            msg.contains('another')) {
+        if (msg.contains('perangkat') || msg.contains('device') || msg.contains('another')) {
           _showAlert(
-            title: 'Sesi Aktif',
-            message: 'Akun ini sedang login di perangkat lain.',
+            title: 'SESI PERANGKAT AKTIF',
+            message: 'Akun ini sedang aktif di perangkat lain. Logout terlebih dahulu dari perangkat lama.',
             isError: false,
           );
         } else {
           _showAlert(
-            title: 'Login Gagal',
-            message: 'Username atau password salah.',
+            title: 'AUTENTIKASI GAGAL',
+            message: 'Username atau password tidak cocok.',
             isError: true,
           );
         }
       } else {
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setString('username', username);
-        prefs.setString('password', password);
-        prefs.setString('key', data['key']);
+        if (_rememberMe) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('username', username);
+          await prefs.setString('password', password);
+          await prefs.setString('key', data['key'] ?? '');
+        }
 
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) => SplashScreen(
-                      username: username,
-                      password: password,
-                      role: data['role'],
-                      sessionKey: data['key'],
-                      expiredDate: data['expiredDate'],
-                      listBug: _parseList(data['listBug']),
-                      listDoos: _parseList(data['listDDoS']),
-                      news: _parseList(data['news']),
-                    )),
+          _navigateToSplash(
+            username: username,
+            password: password,
+            role: data['role'] ?? 'member',
+            sessionKey: data['key'] ?? '',
+            expiredDate: data['expiredDate'] ?? '99999-09-99',
+            listBug: _parseList(data['listBug']),
+            news: _parseList(data['news']),
           );
         }
       }
     } catch (_) {
       _showAlert(
-        title: 'Koneksi Error',
-        message: 'Gagal terhubung ke server. Periksa jaringan Anda.',
+        title: 'KONEKSI TERPUTUS',
+        message: 'Gagal terhubung ke endpoint server $baseUrl. Pastikan internet aktif.',
         isError: true,
       );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
 
-    if (mounted) setState(() => _isLoading = false);
+  void _navigateToSplash({
+    required String username,
+    required String password,
+    required String role,
+    required String sessionKey,
+    required String expiredDate,
+    required List<Map<String, dynamic>> listBug,
+    required List<dynamic> news,
+  }) {
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => SplashScreen(
+          username: username,
+          password: password,
+          role: role,
+          expiredDate: expiredDate,
+          sessionKey: sessionKey,
+          listBug: listBug,
+          listDoos: const [],
+          news: news,
+        ),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
+    );
   }
 
   void _showAlert({
     required String title,
     required String message,
     required bool isError,
-    bool showContact = false,
+    bool showSupport = false,
   }) {
-    final color = isError ? const Color(0xFFEF4444) : const Color(0xFFF59E0B);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _cardDark,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: color.withOpacity(0.5), width: 1),
-        ),
-        title: Text(title,
-            style: TextStyle(
-                color: color, fontWeight: FontWeight.bold, fontSize: 18)),
-        content: Text(message,
-            style: const TextStyle(
-                fontSize: 14, height: 1.4, color: Colors.white70)),
-        actions: [
-          if (showContact)
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(ctx);
-                await launchUrl(Uri.parse('https://t.me/NdikaOfficial'),
-                    mode: LaunchMode.externalApplication);
-              },
-              child: const Text('HUBUNGI NDIKA',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: _cyan)),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: isError ? const Color(0xFFEF4444).withOpacity(0.5) : _cyan.withOpacity(0.5),
             ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK', style: TextStyle(color: Colors.white70)),
+            boxShadow: [
+              BoxShadow(
+                color: isError ? const Color(0xFFEF4444).withOpacity(0.2) : _cyan.withOpacity(0.2),
+                blurRadius: 20,
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isError
+                      ? const Color(0xFFEF4444).withOpacity(0.15)
+                      : _cyan.withOpacity(0.15),
+                ),
+                child: Icon(
+                  isError ? Icons.warning_amber_rounded : Icons.info_outline_rounded,
+                  color: isError ? const Color(0xFFEF4444) : _cyan,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Orbitron',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _text,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: _textSub, height: 1.4),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  if (showSupport) ...[
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          final uri = Uri.parse('https://t.me/NdikaOfficial');
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: _cyan),
+                          foregroundColor: _cyan,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('SUPPORT', style: TextStyle(fontFamily: 'Orbitron', fontSize: 11)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isError ? const Color(0xFFEF4444) : _cyan,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('OK', style: TextStyle(fontFamily: 'Orbitron', fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -217,248 +298,224 @@ class _LoginPageState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: _bg,
       body: Stack(
         children: [
-          // Grid background
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _GridPainter(),
-            ),
-          ),
-
-          // Soft neon glow orbs
+          // Background Glow
           Positioned(
-            top: -80,
-            left: -60,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    _cyan.withOpacity(0.18),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -100,
-            right: -80,
+            top: -100,
+            left: -80,
             child: Container(
               width: 280,
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [
-                    _purple.withOpacity(0.16),
-                    Colors.transparent,
-                  ],
+                  colors: [_cyan.withOpacity(0.12), Colors.transparent],
                 ),
               ),
             ),
           ),
 
           SafeArea(
-            child: FadeTransition(
-              opacity: _fade,
-              child: SlideTransition(
-                position: _slide,
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 20),
-                    child: Form(
-                      key: _formKey,
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 380),
-                        padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Top back button
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _cyan, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Shield Crest Logo
+                      Container(
+                        width: 80,
+                        height: 80,
                         decoration: BoxDecoration(
-                          color: _cardDark.withOpacity(0.92),
-                          borderRadius: BorderRadius.circular(28),
-                          border: Border.all(
-                            color: _cyan.withOpacity(0.25),
-                            width: 1.2,
-                          ),
+                          shape: BoxShape.circle,
+                          color: _surface,
+                          border: Border.all(color: _cyan.withOpacity(0.5), width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: _cyan.withOpacity(0.12),
-                              blurRadius: 40,
-                              spreadRadius: 2,
+                              color: _cyan.withOpacity(0.3),
+                              blurRadius: 20,
                             ),
+                          ],
+                        ),
+                        child: const Icon(Icons.shield_rounded, color: _cyan, size: 40),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      const Text(
+                        'NDIKA BASE',
+                        style: TextStyle(
+                          fontFamily: 'Orbitron',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: _text,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Cyber Security & Automation Protocol',
+                        style: TextStyle(fontSize: 12, color: _textSub),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Glassmorphic Input Card
+                      Container(
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          color: _card.withOpacity(0.75),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: _border.withOpacity(0.7)),
+                          boxShadow: [
                             BoxShadow(
-                              color: _purple.withOpacity(0.08),
-                              blurRadius: 60,
-                              spreadRadius: 4,
+                              color: Colors.black.withOpacity(0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Neon Logo Circle
-                            Container(
-                              width: 92,
-                              height: 92,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF2196F3),
-                                    Color(0xFF7B1FA2),
-                                    Color(0xFFE53935),
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: _cyan.withOpacity(0.55),
-                                    blurRadius: 22,
-                                    spreadRadius: 1,
-                                  ),
-                                  BoxShadow(
-                                    color: _purple.withOpacity(0.35),
-                                    blurRadius: 30,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.all(3.5),
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF0A0E17),
-                                ),
-                                child: ClipOval(
-                                  child: Image.asset(
-                                    'assets/images/logo.png',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Center(
-                                      child: Icon(
-                                        Icons.bolt_rounded,
-                                        size: 42,
-                                        color: _cyan,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 28),
-
-                            // Title NDIKA SYSTEM
-                            ShaderMask(
-                              shaderCallback: (bounds) =>
-                                  const LinearGradient(
-                                colors: [
-                                  Color(0xFF00F2FE),
-                                  Color(0xFF4FACFE),
-                                  Color(0xFFA855F7),
-                                ],
-                              ).createShader(bounds),
-                              child: const Text(
-                                'NDIKA',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Orbitron',
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: 5,
-                                  height: 1.05,
-                                ),
-                              ),
-                            ),
-                            ShaderMask(
-                              shaderCallback: (bounds) =>
-                                  const LinearGradient(
-                                colors: [
-                                  Color(0xFF00F2FE),
-                                  Color(0xFFA855F7),
-                                ],
-                              ).createShader(bounds),
-                              child: const Text(
-                                'EXPLOIT SUITE',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Orbitron',
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 3,
-                                  height: 1.1,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            Text(
-                              'WhatsApp Automation & Crasher Engine',
+                            const Text(
+                              'IDENTIFIER / USERNAME',
                               style: TextStyle(
-                                fontSize: 13,
-                                color: const Color(0xFF00F2FE).withOpacity(0.75),
-                                letterSpacing: 0.8,
-                                fontWeight: FontWeight.w500,
+                                fontFamily: 'ShareTechMono',
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _cyan,
+                                letterSpacing: 1,
                               ),
                             ),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: _userCtrl,
+                              style: const TextStyle(color: _text, fontSize: 14),
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.person_rounded, color: _cyan, size: 20),
+                                hintText: 'Masukkan username...',
+                                hintStyle: const TextStyle(color: _textSub, fontSize: 13),
+                                filled: true,
+                                fillColor: _surface,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide(color: _border.withOpacity(0.6)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide(color: _border.withOpacity(0.6)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: _cyan, width: 1.5),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                              ),
+                              validator: (v) => v!.trim().isEmpty ? 'Username wajib diisi' : null,
+                            ),
 
-                            const SizedBox(height: 36),
+                            const SizedBox(height: 20),
 
-                            // Username field
-                            _buildField(
-                              controller: userCtrl,
-                              hint: 'Username',
-                              icon: Icons.person_rounded,
-                              isPassword: false,
-                              validator: (v) =>
-                                  (v == null || v.trim().isEmpty)
-                                      ? 'Username wajib diisi'
-                                      : null,
+                            const Text(
+                              'ACCESS KEY / PASSWORD',
+                              style: TextStyle(
+                                fontFamily: 'ShareTechMono',
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _cyan,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: _passCtrl,
+                              obscureText: _obscurePass,
+                              style: const TextStyle(color: _text, fontSize: 14),
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.key_rounded, color: _cyan, size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePass ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                                    color: _textSub,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                                ),
+                                hintText: 'Masukkan password...',
+                                hintStyle: const TextStyle(color: _textSub, fontSize: 13),
+                                filled: true,
+                                fillColor: _surface,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide(color: _border.withOpacity(0.6)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide(color: _border.withOpacity(0.6)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: _cyan, width: 1.5),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                              ),
+                              validator: (v) => v!.trim().isEmpty ? 'Password wajib diisi' : null,
                             ),
 
                             const SizedBox(height: 16),
 
-                            // Password field
-                            _buildField(
-                              controller: passCtrl,
-                              hint: 'Password',
-                              icon: Icons.lock_rounded,
-                              isPassword: true,
-                              validator: (v) =>
-                                  (v == null || v.trim().isEmpty)
-                                      ? 'Password wajib diisi'
-                                      : null,
+                            // Remember Me Checkbox
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _rememberMe,
+                                  activeColor: _cyan,
+                                  checkColor: Colors.black,
+                                  side: const BorderSide(color: _cyan),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                                ),
+                                const Text(
+                                  'Ingat Sesi Perangkat',
+                                  style: TextStyle(color: _textSub, fontSize: 12),
+                                ),
+                              ],
                             ),
 
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 16),
 
-                            // LOGIN button
+                            // Authenticate Button
                             SizedBox(
                               width: double.infinity,
-                              height: 54,
+                              height: 52,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF2196F3),
-                                      Color(0xFF7B1FA2),
-                                      Color(0xFFE53935),
-                                    ],
+                                    colors: [_cyan, _blueMid, _purple],
                                   ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: _cyan.withOpacity(0.35),
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 6),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
@@ -467,35 +524,27 @@ class _LoginPageState extends State<LoginPage>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
                                     shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    disabledBackgroundColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                   ),
                                   child: _isLoading
                                       ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.6,
-                                            color: Colors.white,
-                                          ),
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                                         )
                                       : const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.arrow_forward_rounded,
-                                                size: 20),
-                                            SizedBox(width: 8),
+                                            Icon(Icons.login_rounded, size: 18, color: Colors.white),
+                                            SizedBox(width: 10),
                                             Text(
-                                              'LOGIN',
+                                              'AUTHENTICATE',
                                               style: TextStyle(
                                                 fontFamily: 'Orbitron',
-                                                fontSize: 16,
+                                                fontSize: 14,
                                                 fontWeight: FontWeight.w700,
-                                                letterSpacing: 2.5,
+                                                letterSpacing: 2,
+                                                color: Colors.white,
                                               ),
                                             ),
                                           ],
@@ -503,33 +552,44 @@ class _LoginPageState extends State<LoginPage>
                                 ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
 
-                            const SizedBox(height: 22),
+                      const SizedBox(height: 28),
 
-                            // Secure footer
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.shield_outlined,
-                                  size: 14,
-                                  color: Colors.white.withOpacity(0.4),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Secure Login  •  Encrypted Connection',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.white.withOpacity(0.4),
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
+                      // Server Connection Status
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _border.withOpacity(0.6)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF10B981),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'ENDPOINT: base-api.ndichan.xyz',
+                              style: TextStyle(
+                                fontFamily: 'ShareTechMono',
+                                color: _textSub,
+                                fontSize: 11,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -539,90 +599,4 @@ class _LoginPageState extends State<LoginPage>
       ),
     );
   }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    required bool isPassword,
-    required String? Function(String?) validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword ? _obscurePass : false,
-      style: const TextStyle(
-        fontSize: 15,
-        color: Colors.white,
-        fontWeight: FontWeight.w500,
-      ),
-      cursorColor: _cyan,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: _hint.withOpacity(0.8),
-          fontSize: 14,
-        ),
-        prefixIcon: Icon(icon, color: _cyan.withOpacity(0.85), size: 22),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  _obscurePass
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: _hint,
-                  size: 22,
-                ),
-                onPressed: () =>
-                    setState(() => _obscurePass = !_obscurePass),
-              )
-            : null,
-        filled: true,
-        fillColor: _fieldBg,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _cyan, width: 1.6),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444)),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.6),
-        ),
-      ),
-    );
-  }
-}
-
-/// Subtle cyber grid background
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.05)
-      ..strokeWidth = 0.8;
-
-    const double step = 28;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

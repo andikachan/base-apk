@@ -212,7 +212,7 @@ class DashboardPage extends StatefulWidget {
     required this.role,
     required this.expiredDate,
     required this.listBug,
-    required this.listDoos,
+    this.listDoos = const [],
     required this.sessionKey,
     required this.news,
   });
@@ -1919,11 +1919,10 @@ class _DashboardPageState extends State<DashboardPage>
 
   Widget _buildLightQuickActions() {
     final actions = [
-      {'icon': Icons.bug_report, 'title': 'Bug WhatsApp', 'sub': 'Kirim payload mematikan ke nomor atau grup WA', 'color': const Color(0xFFE53935), 'tap': () {
+      {'icon': Icons.bug_report, 'title': 'Bug WhatsApp', 'sub': 'Kirim payload ke nomor atau grup WA', 'color': const Color(0xFFE53935), 'tap': () {
         Navigator.push(context, _slideRoute(BugSenderPage(sessionKey: sessionKey, username: username, role: role)));
       }},
-      {'icon': Icons.flash_on, 'title': 'DDoS Attack', 'sub': 'Lumpuhkan server dengan serangan Layer 4 & 7', 'color': const Color(0xFF1E88E5), 'tap': () {
-        // open tools / ddos if available
+      {'icon': Icons.construction_rounded, 'title': 'Tools Arsenal', 'sub': 'Akses utilitas OSINT, Downloader & Server', 'color': const Color(0xFF0284C7), 'tap': () {
         setState(() => _navIndex = 3);
       }},
       {'icon': Icons.build_circle_outlined, 'title': 'Other Tools', 'sub': 'Akses tools tambahan', 'color': const Color(0xFF43A047), 'tap': () {
@@ -3241,7 +3240,7 @@ class _DashboardPageState extends State<DashboardPage>
                 errorBuilder: (_,__,___) => const Icon(Icons.rocket, size: 20, color: Color(0xFF1976D2))),
             ),
             const SizedBox(width: 8),
-            const Text('NDIKA EXECUTION', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
+            const Text('NDIKA BASE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
           ],
         ),
       ),
@@ -3272,10 +3271,9 @@ class _DashboardPageState extends State<DashboardPage>
     final items = [
       {'icon': Icons.grid_view_rounded, 'label': 'Home', 'index': 0},
       {'icon': FontAwesomeIcons.whatsapp, 'label': 'WA', 'index': 1},
-      {'icon': Icons.phone_android_rounded, 'label': 'RAT', 'index': 2},
-      {'icon': Icons.apps_rounded, 'label': 'Menu', 'index': 4},
+      {'icon': Icons.build_rounded, 'label': 'Arsenal', 'index': 3},
       {'icon': Icons.notifications_none_rounded, 'label': 'Info', 'index': 2},
-      {'icon': Icons.build_rounded, 'label': 'Tools', 'index': 3},
+      {'icon': Icons.apps_rounded, 'label': 'Menu', 'index': 4},
     ];
 
     final bool isMenuPage = _navIndex == 4;
@@ -3309,28 +3307,14 @@ class _DashboardPageState extends State<DashboardPage>
             children: List.generate(items.length, (i) {
               final item = items[i];
               final targetIndex = item['index'] as int;
-              final isActive = _navIndex == targetIndex &&
-                  (item['label'] != 'Info' || _navIndex == 2) &&
-                  !(item['label'] == 'Info' && _navIndex == 4);
-              // More precise active: Menu only when index 4
-              final bool active = (item['label'] == 'Menu')
-                  ? (_navIndex == 4)
-                  : (item['label'] == 'Home')
-                      ? (_navIndex == 0)
-                      : (item['label'] == 'WA')
-                          ? (_navIndex == 1)
-                          : (item['label'] == 'RAT')
-                              ? (_navIndex == 2)
-                              : (item['label'] == 'Tools')
-                                  ? (_navIndex == 3)
-                                  : false;
+              final bool active = _navIndex == targetIndex;
 
               return GestureDetector(
                 onTap: () => _onNavTap(targetIndex),
                 behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: active
                       ? BoxDecoration(
                           color: isMenuPage
@@ -3351,11 +3335,11 @@ class _DashboardPageState extends State<DashboardPage>
                                 : const Color(0xFF9E9E9E)),
                         size: 22,
                       ),
-                      if (active && item['label'] == 'Menu') ...[
+                      if (active) ...[
                         const SizedBox(height: 2),
                         Text(
-                          'Menu',
-                          style: TextStyle(
+                          item['label'] as String,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
