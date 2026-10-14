@@ -213,6 +213,18 @@ class _ToolsPageState extends State<ToolsPage> {
     ),
   ];
 
+  void _openCategorySheet(_ToolCategory cat) {
+    List<_ToolItem> items;
+    switch (cat.id) {
+      case 'osint':
+        items = _osintItems();
+        break;
+      case 'panel':
+        items = _panelItems();
+        break;
+      case 'downloader':
+        items = _downloaderItems();
+        break;
       case 'utilities':
         items = _utilityItems();
         break;
