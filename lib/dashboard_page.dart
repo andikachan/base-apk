@@ -264,10 +264,6 @@ class _DashboardPageState extends State<DashboardPage>
   late PageController _qaPageCtrl;
   double _currentQaPage = 0.0;
 
-  // System Menu (swipe cards)
-  late PageController _menuPageCtrl;
-  double _currentMenuPage = 0.0;
-
   // ── Tabungan Virtual ──
   double _tabunganSaldo = 0;
   List<Map<String, dynamic>> _tabunganRiwayat = [];
@@ -320,11 +316,6 @@ class _DashboardPageState extends State<DashboardPage>
       if (mounted) setState(() => _currentQaPage = _qaPageCtrl.page ?? 0.0);
     });
 
-    _menuPageCtrl = PageController(viewportFraction: 0.82, initialPage: 1);
-    _menuPageCtrl.addListener(() {
-      if (mounted) setState(() => _currentMenuPage = _menuPageCtrl.page ?? 0.0);
-    });
-
     _initAndroidId();
     _loadProfileImage();
     _initMenuVideo();
@@ -342,7 +333,6 @@ class _DashboardPageState extends State<DashboardPage>
     _menuVideoCtrl?.dispose();
     _newsPageCtrl.dispose();
     _qaPageCtrl.dispose();
-    _menuPageCtrl.dispose();
     super.dispose();
   }
 
@@ -835,8 +825,6 @@ class _DashboardPageState extends State<DashboardPage>
         return InfoPage(sessionKey: sessionKey);
       case 3:
         return ToolsPage(sessionKey: sessionKey, userRole: role, listDoos: listDoos);
-      case 4:
-        return _buildSystemMenuPage();
       case 0:
       default:
         return _buildHomePage();
@@ -1359,350 +1347,6 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  // ── SYSTEM MENU (swipe cards - Spam OTP / Spam Pair / Menu Bug) ───────────
-  Widget _buildSystemMenuPage() {
-    final menus = [
-      {
-        'title': 'Spam OTP',
-        'subtitle': 'OTP Flood System',
-        'desc': 'Kirim spam OTP ke target secara massal dengan delay terkontrol dan multi-session.',
-        'icon': Icons.sms_rounded,
-        'gradient': [const Color(0xFF1565C0), const Color(0xFF0D47A1)],
-        'file': 'spam_otp.dart',
-        'action': 'otp',
-      },
-      {
-        'title': 'Spam Pair',
-        'subtitle': 'Pairing Code Flood',
-        'desc': 'Spam pairing code WhatsApp ke nomor target secara realtime dan berulang.',
-        'icon': Icons.link_rounded,
-        'gradient': [const Color(0xFF6A1B9A), const Color(0xFF4A148C)],
-        'file': 'spam_pair.dart',
-        'action': 'pair',
-      },
-      {
-        'title': 'Menu Bug',
-        'subtitle': 'Bug Sender Panel',
-        'desc': 'Akses panel bug WhatsApp lengkap: crash, blank, freeze, dan berbagai payload.',
-        'icon': Icons.bug_report_rounded,
-        'gradient': [const Color(0xFF00838F), const Color(0xFF006064)],
-        'file': 'bug_sender.dart',
-        'action': 'bug',
-      },
-    ];
-
-    final int pageIdx = _currentMenuPage.round().clamp(0, menus.length - 1);
-    final current = menus[pageIdx];
-
-    return Container(
-      color: const Color(0xFF05080F),
-      child: Stack(
-        children: [
-          // Grid background
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _GridPatternPainter(
-                gridColor: const Color(0xFF00E5FF).withOpacity(0.045),
-                lineColor: const Color(0xFF00E5FF).withOpacity(0.02),
-                spacing: 32,
-              ),
-            ),
-          ),
-
-          SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('SYSTEM MENU',
-                              style: TextStyle(
-                                color: const Color(0xFF00E5FF).withOpacity(0.7),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1.5,
-                                fontFamily: 'Orbitron',
-                              )),
-                            const SizedBox(height: 4),
-                            const Text('Pilih Akses',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.3,
-                              )),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('NDIKA BASE PROTOCOL',
-                            style: TextStyle(
-                              color: const Color(0xFF00F2FE).withOpacity(0.85),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Orbitron',
-                              letterSpacing: 1.0,
-                            )),
-                          const SizedBox(height: 6),
-                          GestureDetector(
-                            onTap: () {
-                              // open tools as "explore all"
-                              setState(() => _navIndex = 3);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withOpacity(0.25)),
-                                color: Colors.white.withOpacity(0.06),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.explore_rounded, size: 14, color: Colors.white.withOpacity(0.8)),
-                                  const SizedBox(width: 6),
-                                  Text('Explore All Menu',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.85),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    )),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                // Swipe hint
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Icon(Icons.swipe_rounded, size: 16, color: Colors.white.withOpacity(0.4)),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Geser untuk memilih menu (${pageIdx + 1}/${menus.length})',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.45),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Swipeable cards
-                Expanded(
-                  child: PageView.builder(
-                    controller: _menuPageCtrl,
-                    itemCount: menus.length,
-                    onPageChanged: (i) => setState(() => _currentMenuPage = i.toDouble()),
-                    itemBuilder: (context, index) {
-                      final m = menus[index];
-                      final dist = (_currentMenuPage - index).abs();
-                      final scale = (1.0 - (dist * 0.08)).clamp(0.88, 1.0);
-                      final grads = m['gradient'] as List<Color>;
-
-                      return Transform.scale(
-                        scale: scale,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(28),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: grads,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: grads[0].withOpacity(0.45),
-                                  blurRadius: 28,
-                                  offset: const Offset(0, 12),
-                                ),
-                              ],
-                            ),
-                            child: Stack(
-                              children: [
-                                // Decorative circles
-                                Positioned(
-                                  top: -40,
-                                  right: -30,
-                                  child: Container(
-                                    width: 160,
-                                    height: 160,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white.withOpacity(0.08),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 80,
-                                  right: -20,
-                                  child: Container(
-                                    width: 100,
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white.withOpacity(0.05),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Icon box
-                                      Container(
-                                        width: 64,
-                                        height: 64,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.18),
-                                          borderRadius: BorderRadius.circular(18),
-                                          border: Border.all(color: Colors.white.withOpacity(0.25)),
-                                        ),
-                                        child: Icon(
-                                          m['icon'] as IconData,
-                                          color: Colors.white,
-                                          size: 32,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        m['subtitle'] as String,
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.7),
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        m['title'] as String,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w800,
-                                          fontFamily: 'Orbitron',
-                                          letterSpacing: 0.5,
-                                          height: 1.1,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        m['desc'] as String,
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.75),
-                                          fontSize: 13.5,
-                                          height: 1.45,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 28),
-                                      // Button
-                                      SizedBox(
-                                        width: double.infinity,
-                                        height: 52,
-                                        child: ElevatedButton(
-                                          onPressed: () => _openMenuFeature(m['action'] as String),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white,
-                                            foregroundColor: const Color(0xFF0A1628),
-                                            elevation: 0,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          child: const Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Buka Halaman',
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                              SizedBox(width: 8),
-                                              Icon(Icons.arrow_forward_rounded, size: 18),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Bottom status strip
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  color: const Color(0xFF00B0FF),
-                  child: Text(
-                    'Membuka ${current['title']} (${current['file']})',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openMenuFeature(String action) {
-    Widget? page;
-    switch (action) {
-      case 'otp':
-      case 'pair':
-      case 'bug':
-        page = BugSenderPage(
-          sessionKey: sessionKey,
-          username: username,
-          role: role,
-        );
-        break;
-    }
-    if (page != null) {
-      Navigator.push(context, _slideRoute(page));
-    }
-  }
-
-
   // ── HOME PAGE ─────────────────────────────────────────────────────────────
   Widget _buildHomePage() {
     return FadeTransition(
@@ -2115,13 +1759,13 @@ class _DashboardPageState extends State<DashboardPage>
         }
       },
       {
-        'icon': Icons.apps_rounded,
-        'title': 'System Menu',
-        'sub': 'Spam OTP & Pairing flood',
+        'icon': Icons.support_agent_rounded,
+        'title': 'Bantuan & CS',
+        'sub': 'Customer support & info',
         'color': const Color(0xFF9D4EDD),
         'gradient': [const Color(0xFF9D4EDD), const Color(0xFF6B21A8)],
         'tap': () {
-          setState(() => _navIndex = 4);
+          Navigator.push(context, _slideRoute(ContactPage(sessionKey: sessionKey, role: role)));
         }
       },
       {
@@ -3517,12 +3161,11 @@ class _DashboardPageState extends State<DashboardPage>
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final bool isMenu = _navIndex == 4;
     return Scaffold(
-      backgroundColor: isMenu ? const Color(0xFF05080F) : kBg,
+      backgroundColor: kBg,
       extendBodyBehindAppBar: false,
-      appBar: isMenu ? null : _buildAppBar(),
-      drawer: isMenu ? null : _buildDrawer(),
+      appBar: _buildAppBar(),
+      drawer: _buildDrawer(),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
         transitionBuilder: (child, anim) =>
@@ -3633,10 +3276,7 @@ class _DashboardPageState extends State<DashboardPage>
       {'icon': FontAwesomeIcons.whatsapp, 'label': 'WA', 'index': 1},
       {'icon': Icons.build_rounded, 'label': 'Arsenal', 'index': 3},
       {'icon': Icons.notifications_none_rounded, 'label': 'Info', 'index': 2},
-      {'icon': Icons.apps_rounded, 'label': 'Menu', 'index': 4},
     ];
-
-    final bool isMenuPage = _navIndex == 4;
 
     return Container(
       decoration: BoxDecoration(
