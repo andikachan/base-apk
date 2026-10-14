@@ -9,7 +9,7 @@ class SplashScreen extends StatefulWidget {
   final String expiredDate;
   final String sessionKey;
   final List<Map<String, dynamic>> listBug;
-  final List<Map<String, dynamic>>? listDoos;
+  final List<Map<String, dynamic>> listDoos;
   final List<dynamic> news;
 
   const SplashScreen({
