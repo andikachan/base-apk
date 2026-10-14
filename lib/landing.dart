@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'login_page.dart';
 
 class LandingPage extends StatefulWidget {
@@ -61,11 +60,6 @@ class _LandingPageState extends State<LandingPage>
     _pulseCtrl.dispose();
     _videoCtrl?.dispose();
     super.dispose();
-  }
-
-  Future<void> _openSupport() async {
-    final uri = Uri.parse('https://t.me/NdikaOfficial');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _enterLogin() {
@@ -330,41 +324,6 @@ class _LandingPageState extends State<LandingPage>
                     ),
                   ),
 
-                  const SizedBox(height: 14),
-
-                  // 2. Support / Buy
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: OutlinedButton(
-                      onPressed: _openSupport,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: _cyan.withOpacity(0.5), width: 1.5),
-                        foregroundColor: _cyan,
-                        backgroundColor: _surface.withOpacity(0.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.send_rounded, size: 18),
-                          SizedBox(width: 10),
-                          Text(
-                            'OFFICIAL TELEGRAM',
-                            style: TextStyle(
-                              fontFamily: 'Orbitron',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(height: 36),
 
                   // Section Header
@@ -416,7 +375,7 @@ class _LandingPageState extends State<LandingPage>
 
                   // Footer
                   Text(
-                    'NDIKA OFFICIAL © 2026 • ALL RIGHTS RESERVED',
+                    'NDIKA BASE © 2026 • ALL RIGHTS RESERVED',
                     style: TextStyle(
                       fontFamily: 'ShareTechMono',
                       fontSize: 10,

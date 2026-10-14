@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'api_config.dart';
 import 'splash.dart';
 
@@ -118,7 +117,6 @@ class _LoginPageState extends State<LoginPage> {
           title: 'AKSES KADALUARSA',
           message: 'Masa aktif akun telah berakhir. Silakan perpanjang lisensi Anda.',
           isError: true,
-          showSupport: true,
         );
       } else if (data['valid'] != true) {
         final msg = (data['message'] ?? '').toString().toLowerCase();
@@ -198,7 +196,6 @@ class _LoginPageState extends State<LoginPage> {
     required String title,
     required String message,
     required bool isError,
-    bool showSupport = false,
   }) {
     showDialog(
       context: context,
@@ -255,38 +252,18 @@ class _LoginPageState extends State<LoginPage> {
                 style: const TextStyle(fontSize: 13, color: _textSub, height: 1.4),
               ),
               const SizedBox(height: 22),
-              Row(
-                children: [
-                  if (showSupport) ...[
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () async {
-                          Navigator.pop(ctx);
-                          final uri = Uri.parse('https://t.me/NdikaOfficial');
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: _cyan),
-                          foregroundColor: _cyan,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('SUPPORT', style: TextStyle(fontFamily: 'Orbitron', fontSize: 11)),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isError ? const Color(0xFFEF4444) : _cyan,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('OK', style: TextStyle(fontFamily: 'Orbitron', fontSize: 12, fontWeight: FontWeight.bold)),
-                    ),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isError ? const Color(0xFFEF4444) : _cyan,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                ],
+                  child: const Text('OK', style: TextStyle(fontFamily: 'Orbitron', fontSize: 13, fontWeight: FontWeight.bold)),
+                ),
               ),
             ],
           ),
