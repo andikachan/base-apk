@@ -1,260 +1,201 @@
 ================================================================================
-                    PANDUAN RESMI PENGGUNA APLIKASI & BASE-API
-             (Official User Guide - Member, VIP & Public Edition)
+         PANDUAN LENGKAP: CARA MENJALANKAN PROJECT WEB BASE-API DI PTERODACTYL
+               (Tutorial Instalasi & Hosting Server untuk Publik)
 ================================================================================
 
-Selamat datang di Panduan Resmi Penggunaan Aplikasi & Layanan Base-API!
-Dokumen ini dibuat khusus sebagai petunjuk lengkap bagi seluruh pengguna (User,
-Member, maupun VIP) agar dapat menggunakan seluruh fitur aplikasi dengan mudah,
-lancar, dan maksimal.
+Halo semuanya! Panduan ini dibuat untuk memandu Anda langkah demi langkah dalam
+menginstal, mengonfigurasi, dan menjalankan project web backend Base-API & WhatsApp
+Sender ini di Panel Pterodactyl (maupun panel sejenis seperti Reviactyl / Jexactyl).
 
 --------------------------------------------------------------------------------
-DAFTAR ISI
+DAFTAR ISI:
 --------------------------------------------------------------------------------
-1. PENGENALAN APLIKASI
-2. CARA INSTALASI & LOGIN AKUN
-3. PANDUAN LENGKAP PAIRING WHATSAPP (TAUTKAN NOMOR SENDER)
-4. CARA MENGIRIMKAN BUG KE TARGET & GRUP
-5. DAFTAR LENGKAP JENIS BUG & FUNGSINYA (PANDUAN ANDROID & IOS)
-6. TIPS & TRIK AGAR NOMOR SENDER TIDAK MUDAH TERKENA BANNED
-7. CARA KELOLA & GANTI NOMOR SENDER
-8. FITUR LIVE CHAT KOMUNITAS & REMOTE SERVER
-9. PERTANYAAN UMUM (F.A.Q) & CARA ATASI KENDALA
-10. SYARAT, KETENTUAN & ETIKA PENGGUNAAN
+1. PERSYARATAN SERVER (SYSTEM REQUIREMENTS)
+2. PERSIAPAN FILE PROJECT
+3. CARA UPLOAD PROJECT KE PANEL PTERODACTYL
+4. KONFIGURASI STARTUP & VERSI NODE.JS
+5. INSTALASI DEPENDENSI (NPM INSTALL)
+6. PENGATURAN PORT & DOMAIN (CLOUDFLARE TUNNEL)
+7. MENJALANKAN SERVER (START / RESTART)
+8. STRUKTUR FILE PENTING YANG WAJIB DIJAGA
+9. CARA INTEGRASI DENGAN APLIKASI ANDROID (APK)
+10. TANYA JAWAB & SOLUSI KENDALA (TROUBLESHOOTING)
 
 ================================================================================
-1. PENGENALAN APLIKASI
+1. PERSYARATAN SERVER (SYSTEM REQUIREMENTS)
 ================================================================================
-Aplikasi ini adalah platform otomasi WhatsApp canggih yang dirancang untuk:
-- Menguji keamanan dan ketahanan aplikasi WhatsApp (Security Testing & Stress Test).
-- Menghubungkan akun WhatsApp sebagai Sender secara otomatis tanpa scan barcode QR
-  (Cukup menggunakan 8-digit Kode Pairing).
-- Mengirimkan paket data/payload pesan khusus (Bug & Delay) ke nomor target atau grup.
-- Berbagi obrolan dan informasi sesama pengguna di ruang obrolan komunitas.
-
-================================================================================
-2. CARA INSTALASI & LOGIN AKUN
-================================================================================
-A. Instalasi Aplikasi (Android):
-   1. Unduh file APK rilis terbaru (misal: `app-release.apk`).
-   2. Buka file APK tersebut di HP Android Anda.
-   3. Jika muncul peringatan "Instal dari Sumber Tidak Dikenal", pilih "Izinkan".
-   4. Tunggu hingga proses instalasi selesai dan buka aplikasi.
-
-B. Login ke Aplikasi:
-   1. Pada layar Login, masukkan "Username" dan "Password" akun Anda.
-   2. Jika Anda belum memiliki akun, silakan hubungi Admin / Reseller resmi untuk
-      melakukan registrasi akun (Tersedia tier Member dan VIP).
-   3. Ketuk tombol "LOGIN KE APLIKASI".
-   4. Setelah berhasil, Anda akan langsung diarahkan ke Dashboard utama.
+Sebelum memulai, pastikan server Pterodactyl Anda memenuhi spesifikasi berikut:
+- Tipe Egg         : Node.js (Yolks Node.js 20 atau Node.js 24)
+- RAM Minimal      : 512 MB (Sangat disarankan: 1 GB - 2 GB)
+- CPU Minimal      : 1 Core (50% - 100% CPU)
+- Disk / Storage   : Minimal 1 GB (Untuk menampung node_modules & sesi WA)
+- Port Allocation  : Minimal 1 Port (Port bebas yang diberikan oleh panel)
 
 ================================================================================
-3. PANDUAN LENGKAP PAIRING WHATSAPP (TAUTKAN NOMOR SENDER)
+2. PERSIAPAN FILE PROJECT
 ================================================================================
-Fitur Pairing memungkinkan nomor WhatsApp Anda terhubung ke sistem server agar
-dapat dijadikan sebagai "Sender" (mesin pengirim bug).
+Pastikan file project Anda sudah dikemas dalam format `.zip`.
+Isi file zip tersebut harus mencakup:
+- index.js              -> File utama script server
+- package.json          -> Daftar modul & dependensi
+- database.json         -> Database akun pengguna
+- keyList.json          -> Penyimpanan sesi login
+- permenmd/             -> Folder penyimpanan sesi WhatsApp (boleh kosong)
+- assets/               -> Aset static gambar/media
+- lib/                  -> Library pendukung
 
-Langkah-langkah Pairing:
---------------------------------------------------------------------------------
-LANGKAH 1: Buka Menu Pairing di Aplikasi
-- Dari halaman Dashboard, pilih menu "Pairing Sender" atau icon WhatsApp Pairing.
-
-LANGKAH 2: Pilih Kode Negara & Masukkan Nomor
-- Pilih bendera / kode negara Anda (Default: Indonesia +62).
-- Sistem mendukung SELURUH negara di dunia (+1 US, +60 Malaysia, +65 SG, dll).
-- Ketik nomor WhatsApp Anda (Contoh: 082241182487 atau 82241182487).
-  *Catatan: Tidak perlu mengetik tanda plus (+), sistem otomatis merapikannya.*
-
-LANGKAH 3: Dapatkan Kode Pairing
-- Ketuk tombol "GENERATE PAIRING CODE".
-- Tunggu beberapa detik hingga muncul 8-digit Kode Pairing di layar
-  (Contoh: NDIKA123 atau ABCD-EFGH).
-- Ketuk tombol "SALIN KODE" untuk menyalin ke clipboard.
-
-LANGKAH 4: Masukkan Kode di Aplikasi WhatsApp Anda
-- Buka aplikasi WhatsApp di HP nomor yang Anda daftarkan tadi.
-- Ketuk titik tiga di pojok kanan atas (Android) atau Pengaturan (iPhone).
-- Pilih "Perangkat Tertaut" (Linked Devices).
-- Ketuk "Tautkan Perangkat".
-- Pada bagian bawah layar, ketuk opsi: "Tautkan dengan nomor telepon saja"
-  (Link with phone number instead).
-- Tempelkan atau ketik 8-digit kode yang didapatkan dari aplikasi tadi.
-
-LANGKAH 5: Selesai & Terhubung
-- WhatsApp Anda akan memproses tautan selama 3-5 detik.
-- Kembali ke aplikasi kami, ketuk tombol "Refresh" di daftar sender.
-- Status nomor Anda sekarang akan berstatus "ONLINE" dan siap digunakan!
+*Catatan: Jangan sertakan folder `node_modules` di dalam file zip Anda agar ukuran
+file tetap kecil dan proses upload berlangsung cepat.*
 
 ================================================================================
-4. CARA MENGIRIMKAN BUG KE TARGET & GRUP
+3. CARA UPLOAD PROJECT KE PANEL PTERODACTYL
 ================================================================================
-Setelah nomor sender Anda berstatus ONLINE, Anda dapat melakukan pengetesan bug:
+Terdapat dua cara mudah untuk memasukkan file project ke Pterodactyl:
 
-A. Menyerang Nomor Target Pribadi:
-   1. Masuk ke menu "Bug Sender" atau "Dashboard".
-   2. Pada kolom "Nomor Target", masukkan nomor target diawali dengan kode negara
-      tanpa spasi dan tanpa tanda plus (+).
-      Contoh: 6281234567890 (Bukan 0812... dan bukan +62812...).
-   3. Pilih "Jenis Bug" yang ingin dikirimkan sesuai sasaran perangkat target.
-   4. Ketuk tombol "KIRIM BUG".
-   5. Tunggu notifikasi berhasil terkirim.
+A. CARA 1: LEWAT FILE MANAGER PANEL (Paling Mudah)
+   1. Buka browser dan login ke Panel Pterodactyl Anda.
+   2. Pilih server yang ingin Anda gunakan.
+   3. Masuk ke menu "File Manager" (icon folder di sidebar kiri).
+   4. Klik tombol "Upload" di kanan atas, lalu pilih file zip project Anda.
+   5. Tunggu proses upload hingga 100%.
+   6. Setelah file zip terupload, klik icon titik tiga (...) di sebelah file zip
+      tersebut, lalu pilih "Unarchive" (Ekstrak).
+   7. Semua file project akan otomatis keluar ke folder utama. File zip lama boleh
+      Anda hapus untuk menghemat ruang disk.
 
-B. Menyerang Grup WhatsApp:
-   1. Siapkan Target ID Grup (JID Grup).
-      Format ID Grup: `120363xxxxxxxxx@g.us`
-   2. Masukkan ID Grup tersebut pada kolom target.
-   3. Pilih jenis bug khusus grup (misal: "CRASH GROUP" atau "COMBO V2 ULTRA").
-   4. Ketuk tombol "KIRIM BUG KE GRUP".
-
-================================================================================
-5. DAFTAR LENGKAP JENIS BUG & FUNGSINYA (PANDUAN ANDROID & IOS)
-================================================================================
-Pilihlah jenis payload bug sesuai dengan tipe HP dan sasaran target Anda:
-
-1. BLANK DELAY (`blank`)
-   - Efek: Mengirimkan teks tak kasat mata berdensitas tinggi.
-   - Hasil: WhatsApp target akan mengalami lag dan pesan menumpuk lambat masuk.
-   - Sasaran: Semua jenis HP (Android & iOS).
-
-2. CLASSIC COMBO (`combo`)
-   - Efek: Paket gabungan delay font dan script forclose.
-   - Hasil: Menghambat aplikasi WhatsApp dan sesekali memicu forclose.
-   - Sasaran: Android kelas entry & mid-range.
-
-3. COMBO V2 ULTRA (`combov2`)
-   - Efek: Versi upgrade dari Classic Combo dengan intensitas payload ganda.
-   - Hasil: WhatsApp target freeze total saat membuka ruang obrolan.
-   - Sasaran: Android spesifikasi tinggi & grup aktif.
-
-4. FREEZE FORCLOSE (`freeze`)
-   - Efek: Menyerang proses thread rendering antarmuka chat WhatsApp.
-   - Hasil: WhatsApp langsung tertutup otomatis (Keluar sendiri / Crash).
-   - Sasaran: Seluruh tipe WhatsApp Android (Standar & Bisnis).
-
-5. BLAST D-FIVE (`blast`)
-   - Efek: Serangan kilat 5x siklus otomatis dalam hitungan detik.
-   - Hasil: Spam notifikasi berat yang membebani CPU ponsel target.
-   - Sasaran: Menghentikan target yang sedang spam chat.
-
-6. OVERDRIVE GEAR 4 (`overdrive`)
-   - Efek: Eksploitasi buffer memory WhatsApp.
-   - Hasil: Ponsel target menjadi panas dan aplikasi WhatsApp macet total.
-   - Sasaran: Android RAM 3GB - 6GB.
-
-7. CRASH CLICK NOTIF (`click`)
-   - Efek: Menginfeksi bar notifikasi WhatsApp target.
-   - Hasil: Begitu target mengetuk notifikasi pesan yang masuk, WA langsung crash.
-   - Sasaran: Pengguna yang sering membaca chat lewat pop-up notifikasi.
-
-8. FULL DELAY HARD (`delay`)
-   - Efek: Memblokir antrian pesan masuk di server perutean WhatsApp target.
-   - Hasil: Target tidak dapat menerima maupun mengirim chat selama beberapa menit.
-   - Sasaran: Semua perangkat.
-
-9. PUSH MEDIA BKP (`pushmedia`)
-   - Efek: Eksploitasi rendering file dokumen & media WhatsApp.
-   - Hasil: Galeri/chat media target mengalami error rendering layar putih.
-   - Sasaran: Android & WhatsApp Web.
-
-10. CRASH GROUP (`grouptest` / `roid_group`)
-    - Efek: Mengacaukan metadata grup WhatsApp.
-    - Hasil: Siapapun anggota grup yang membuka obrolan grup tersebut akan force close.
-    - Sasaran: Grup WhatsApp target.
-
-11. CRASH IOS / IPHONE (`iosXv`)
-    - Efek: Eksploitasi encoding Unicode & font CoreText khas iOS Apple.
-    - Hasil: WhatsApp pada iPhone target langsung respring / crash mendadak.
-    - Sasaran: Khusus pengguna iPhone / iOS (iOS 15 s/d iOS 17+).
+B. CARA 2: LEWAT SFTP (FileZilla / WinSCP)
+   1. Di panel Pterodactyl, masuk ke menu "Settings".
+   2. Catat "SFTP Details" (IP Host, Port SFTP, dan Username).
+   3. Buka software FileZilla di komputer/laptop Anda.
+   4. Masukkan Host, Port, Username, dan Password panel Anda, lalu klik "Quickconnect".
+   5. Seret (drag and drop) seluruh file project langsung ke direktori server.
 
 ================================================================================
-6. TIPS & TRIK AGAR NOMOR SENDER TIDAK MUDAH TERKENA BANNED
+4. KONFIGURASI STARTUP & VERSI NODE.JS
 ================================================================================
-Agar nomor WhatsApp yang Anda gunakan sebagai sender awet dan terhindar dari
-blokir/banned pihak WhatsApp, ikuti panduan wajib berikut:
-
-1. JANGAN GUNAKAN NOMOR UTAMA:
-   Selalu gunakan nomor cadangan (nomor kedua / nomor khusus bot), bukan nomor
-   pribadi penting Anda.
-2. WARM UP NOMOR BARU:
-   Jika menggunakan kartu perdana baru, gunakan untuk chat normal selama 2-3 hari
-   sebelum digunakan untuk mengirimkan bug secara beruntun.
-3. BERI JEDA / COOLDOWN:
-   Jangan mengirimkan bug tanpa henti secara membabi buta. Berikan jeda 10-30 detik
-   antar pengiriman agar tidak terdeteksi oleh sistem filtering spam WhatsApp.
-4. GANTI SENDER SECARA BERKALA:
-   Jika memiliki beberapa nomor, gantilah sender secara bergantian.
-5. UPGRADE KE VIP:
-   Akun dengan status VIP dapat memanfaatkan pool nomor bersama yang disediakan
-   oleh server, sehingga tidak membebani nomor pribadi Anda.
+Agar server berjalan dengan benar tanpa error:
+1. Masuk ke menu "Startup" di panel Pterodactyl Anda.
+2. Periksa kolom-kolom berikut:
+   - Startup Command:
+     Pastikan berisi:
+     `npm start` atau `node index.js`
+   - Main File / Entrypoint:
+     Pastikan diset ke: `index.js`
+   - Node.js Version:
+     Pilih versi `Node.js 20` atau `Node.js 24`.
+     *(Jangan gunakan Node.js versi lama di bawah 18 karena Baileys membutuhkan
+     dukungan Crypto & Fetch terbaru).*
 
 ================================================================================
-7. CARA KELOLA & GANTI NOMOR SENDER
+5. INSTALASI DEPENDENSI (NPM INSTALL)
 ================================================================================
-A. Melihat Status Sender Anda:
-   - Masuk ke menu "Pairing Sender".
-   - Di bagian bawah, terdapat kartu sender aktif yang menampilkan:
-     * Nomor telepon WhatsApp Anda.
-     * Nama profil akun WhatsApp Anda.
-     * Indikator status: "ONLINE" (Warna Hijau).
+Sebelum server dinyalakan, modul pendukung harus diinstal terlebih dahulu:
 
-B. Memutuskan / Menghapus Sesi Sender:
-   - Jika ingin mengganti nomor atau keluar dari sistem bot:
-   - Ketuk icon "Tempat Sampah" (Hapus Sesi) di kartu nomor Anda.
-   - Konfirmasi dengan memilih "Hapus Sesi".
-   - Sesi Anda akan otomatis terputus dari server dan Anda dapat menautkan
-     nomor baru kapan saja.
+1. Masuk ke menu "Console" di sidebar kiri.
+2. Jika server Anda diatur otomatis menjalankan instalasi saat start, Anda cukup
+   menekan tombol "START".
+3. Jika ingin menginstal manual via Console:
+   - Pastikan server dalam keadaan Stop.
+   - Jalankan perintah:
+     npm install
+4. Tunggu hingga proses instalasi modul selesai dan muncul pesan:
+   "added xx packages in xxs".
 
 ================================================================================
-8. FITUR LIVE CHAT KOMUNITAS & REMOTE SERVER
+6. PENGATURAN PORT & DOMAIN (CLOUDFLARE TUNNEL)
 ================================================================================
-1. Fitur Live Chat:
-   - Anda dapat berinteraksi, bertanya, dan berdiskusi dengan sesama pengguna
-     aplikasi melalui menu Live Chat.
-   - Jaga kesopanan dan dilarang mengirimkan spam atau link berbahaya di ruang chat.
+Script `index.js` project ini sudah dilengkapi deteksi port otomatis:
+`const PORT = process.env.PORT || process.env.SERVER_PORT || 3519;`
 
-2. Fitur Server VPS (Khusus Pengguna Tertentu):
-   - Menu ini memungkinkan Anda menghubungkan server Linux VPS pribadi untuk
-     menjalankan script pengujian secara mandiri.
+Artinya:
+- Anda TIDAK PERLU mengubah kode port di dalam script!
+- Script akan otomatis mendeteksi port alokasi berapapun yang diberikan oleh
+  Pterodactyl pada server Anda (Contoh: port 25576, 3000, 8080, dll).
 
-================================================================================
-9. PERTANYAAN UMUM (F.A.Q) & CARA ATASI KENDALA
-================================================================================
-
-Q1: Kenapa Kode Pairing tidak mau muncul?
-A1: Pastikan nomor yang Anda masukkan sudah benar beserta kode negaranya. Pastikan
-    pula koneksi internet Anda stabil. Coba ulangi dalam 5-10 detik.
-
-Q2: Muncul tulisan "Gagal memuat sesi sender (401)", apa artinya?
-A2: Masa aktif sesi login Anda di HP telah berakhir. Cukup ketuk tombol
-    "LOGIN ULANG KE APLIKASI" di layar untuk memperbarui sesi Anda.
-
-Q3: Kenapa pesan bug tidak masuk ke target?
-A3: Periksa beberapa kemungkinan berikut:
-    - Apakah nomor sender Anda masih berstatus ONLINE?
-    - Apakah nomor target salah / sudah memblokir nomor sender Anda?
-    - Apakah koneksi internet target sedang offline?
-
-Q4: Apakah aplikasi ini aman digunakan?
-A4: Sangat aman untuk perangkat Anda sendiri. Aplikasi ini tidak meminta akses root,
-    tidak membaca data pribadi di HP Anda, dan kredensial login disimpan secara aman.
-
-Q5: Bagaimana cara memperpanjang masa aktif akun saya?
-A5: Hubungi Admin atau Reseller tempat Anda membeli akun sebelum tanggal expired
-    berakhir untuk melakukan perpanjangan masa aktif.
+CARA MENGHUBUNGKAN KE DOMAIN SENDIRI (CLOUDFLARE TUNNEL):
+Jika Anda ingin website Anda memiliki domain HTTPS rapi (misal: `https://api.domainanda.com`):
+1. Buka dashboard Cloudflare Zero Trust (https://one.dash.cloudflare.com).
+2. Masuk ke menu "Networks" -> "Tunnels" -> "Create a Tunnel".
+3. Pilih "Cloudflared" dan beri nama tunnel Anda.
+4. Salin token instalasi tunnel ke VPS host panel Anda.
+5. Pada bagian "Public Hostname":
+   - Subdomain : api (atau base-api)
+   - Domain    : domainanda.com
+   - Service   : HTTP
+   - URL       : 127.0.0.1:<PortAlokasiPterodactylAnda>
+6. Simpan konfigurasi. Sekarang server Pterodactyl Anda sudah aktif di internet
+   dengan sertifikat SSL/HTTPS gratis dan aman dari DDoS!
 
 ================================================================================
-10. SYARAT, KETENTUAN & ETIKA PENGGUNAAN (TERMS OF SERVICE)
+7. MENJALANKAN SERVER (START / RESTART)
 ================================================================================
-1. Aplikasi dan layanan Base-API ini disediakan semata-mata untuk tujuan edukasi,
-   pembelajaran protokol jaringan, dan pengujian keamanan sistem (Security Audit).
-2. Segala bentuk penyalahgunaan yang merugikan pihak lain, perusakan fasilitas umum,
-   atau tindakan melanggar hukum adalah tanggung jawab penuh masing-masing pengguna.
-3. Dilarang keras memperjualbelikan ulang (resell) file aplikasi tanpa izin resmi
-   dari pengembang.
-4. Dengan menggunakan aplikasi ini, Anda menyatakan setuju dan tunduk pada seluruh
-   peraturan dan panduan yang tercantum dalam dokumen ini.
+1. Masuk ke menu "Console" di panel Pterodactyl.
+2. Klik tombol "START" (Warna Hijau).
+3. Perhatikan log konsol. Jika berhasil, akan muncul pesan seperti berikut:
+   --------------------------------------------------------------
+   🚀 Server aktif di http://localhost:25576
+   [AUTO REFRESH] Diatur setiap 30 menit sekali.
+   [AUTOCLEAN LOGS] Diatur setiap jam 12 malam WIB.
+   --------------------------------------------------------------
+4. Buka IP server beserta port Anda di browser (atau gunakan domain tunnel Anda):
+   Contoh: `https://base-api.ndichan.xyz`
+   Anda akan melihat tampilan Landing Page Web resmi Base-API yang menandakan server
+   sudah berjalan 100% sempurna!
 
 ================================================================================
-              DIBUAT OLEH: TIM OFFICIAL BASE-API & NDIKZ DEVELOPER
-            Website: https://base-api.ndichan.xyz | Versi Dokumen: 2.5
+8. STRUKTUR FILE PENTING YANG WAJIB DIJAGA
+================================================================================
+Saat Anda mengelola file di Pterodactyl, JANGAN PERNAH menghapus file/folder berikut
+agar data pengguna dan nomor sender Anda tidak hilang:
+
+1. `database.json`:
+   Berisi seluruh data username, password, limit, dan role user Anda.
+2. `keyList.json`:
+   Berisi data login sesi aktif dan token aplikasi.
+3. `permenmd/`:
+   Folder ini berisi kredensial login akun WhatsApp yang telah ditautkan.
+   Jika folder ini terhapus, Anda harus melakukan pairing ulang nomor WhatsApp Anda!
+4. `tutorial.txt`:
+   File dokumentasi yang bisa diakses langsung via web di `/tutorial.txt`.
+
+================================================================================
+9. CARA INTEGRASI DENGAN APLIKASI ANDROID (APK)
+================================================================================
+Setelah server Pterodactyl Anda aktif:
+1. Buka project source code Android (Flutter) Anda.
+2. Buka file: `lib/api_config.dart`.
+3. Ganti URL `baseUrl` dengan URL domain server Anda:
+   const String baseUrl = 'https://base-api.ndichan.xyz';
+   *(Ganti sesuai domain/IP server Pterodactyl Anda).*
+4. Compile/Build APK Anda menggunakan perintah:
+   flutter build apk --release
+5. APK siap dibagikan ke pengguna dan langsung terhubung ke server Pterodactyl Anda!
+
+================================================================================
+10. TANYA JAWAB & SOLUSI KENDALA (TROUBLESHOOTING)
+================================================================================
+
+Q1: Kenapa saat klik Start server langsung mati (Server marked as OFF)?
+A1: Periksa tab Console untuk melihat pesan error. Kemungkinan penyebab:
+    - Modul belum diinstal: jalankan `npm install`.
+    - Versi Node.js di menu Startup salah: ubah ke Node.js 20 atau 24.
+    - Ada file json yang rusak/korup: pastikan `database.json` formatnya valid.
+
+Q2: Muncul error "EADDRINUSE: address already in use"?
+A2: Port tersebut sedang dipakai proses lain. Matikan server terlebih dahulu
+    (tombol STOP / KILL), tunggu 5 detik, lalu klik START kembali.
+
+Q3: Bagaimana jika server restart, apakah nomor WhatsApp harus pairing ulang?
+A3: TIDAK PERLU. Server ini sudah dilengkapi sistem auto-reconnect. Selama folder
+    `permenmd/` tidak Anda hapus, server akan otomatis menghubungkan kembali seluruh
+    nomor WhatsApp yang tersimpan saat server dinyalakan.
+
+Q4: Kenapa muncul error "Invalid session key (401)" di aplikasi?
+A4: Server project ini sudah memiliki fitur auto-recovery `getKeyInfo`. Pastikan
+    aplikasi Anda versi terbaru agar otomatis merefresh key jika masa aktif habis.
+
+================================================================================
+       PANDUAN INI BERSIFAT RESMI DAN BEBAS DIBAGIKAN KE PUBLIK / MEMBER
+                      Author: NdikzOne / andikachan
+                   Website: https://base-api.ndichan.xyz
 ================================================================================
