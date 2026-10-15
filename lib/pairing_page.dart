@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_config.dart';
 import 'home_page.dart';
+import 'login_page.dart';
 
 class PairingPage extends StatefulWidget {
   final String sessionKey;
@@ -87,6 +89,7 @@ class _PairingPageState extends State<PairingPage>
   List<dynamic> _activeSenders = [];
   bool _isLoadingSenders = false;
   String? _sendersError;
+  String _currentSessionKey = '';
 
   // Animations
   late AnimationController _radarCtrl;
@@ -98,6 +101,8 @@ class _PairingPageState extends State<PairingPage>
   @override
   void initState() {
     super.initState();
+    _currentSessionKey = widget.sessionKey;
+    _resolveSessionKey();
 
     _radarCtrl = AnimationController(
       vsync: this,
@@ -133,6 +138,16 @@ class _PairingPageState extends State<PairingPage>
     _phoneCtrl.dispose();
     _phoneFocus.dispose();
     super.dispose();
+  }
+
+  Future<void> _resolveSessionKey() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedKey = prefs.getString('key') ?? '';
+      if (savedKey.isNotEmpty && mounted) {
+        setState(() => _currentSessionKey = savedKey);
+      }
+    } catch (_) {}
   }
 
   void _startCountdown() {
@@ -320,16 +335,25 @@ class _PairingPageState extends State<PairingPage>
     );
   }
 
-  Future<void> _fetchActiveSenders() async {
+  Future<void> _fetchActiveSenders({bool forceRefreshKey = false}) async {
     setState(() {
       _isLoadingSenders = true;
       _sendersError = null;
     });
 
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/mySender?key=${widget.sessionKey}'),
-      ).timeout(const Duration(seconds: 12));
+      if (_currentSessionKey.isEmpty || forceRefreshKey) {
+        final prefs = await SharedPreferences.getInstance();
+        final savedKey = prefs.getString('key') ?? '';
+        if (savedKey.isNotEmpty) {
+          _currentSessionKey = savedKey;
+        }
+      }
+
+      final url = Uri.parse(
+        '$baseUrl/mySender?key=$_currentSessionKey&username=${Uri.encodeComponent(widget.username)}',
+      );
+      final res = await http.get(url).timeout(const Duration(seconds: 12));
 
       if (!mounted) return;
       if (res.statusCode == 200) {
@@ -338,6 +362,8 @@ class _PairingPageState extends State<PairingPage>
           _activeSenders = data['connections'] ?? [];
           _isLoadingSenders = false;
         });
+      } else if (res.statusCode == 401 && !forceRefreshKey) {
+        return _fetchActiveSenders(forceRefreshKey: true);
       } else {
         setState(() {
           _isLoadingSenders = false;
@@ -348,7 +374,7 @@ class _PairingPageState extends State<PairingPage>
       if (mounted) {
         setState(() {
           _isLoadingSenders = false;
-          _sendersError = 'Koneksi timeout atau offline';
+          _sendersError = 'Koneksi timeout atau offline: $e';
         });
       }
     }
@@ -374,11 +400,23 @@ class _PairingPageState extends State<PairingPage>
     });
 
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/getPairing?key=${widget.sessionKey}&number=$formattedNumber'),
-      ).timeout(const Duration(seconds: 30));
+      if (_currentSessionKey.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        _currentSessionKey = prefs.getString('key') ?? widget.sessionKey;
+      }
+
+      final url = Uri.parse(
+        '$baseUrl/getPairing?key=$_currentSessionKey&username=${Uri.encodeComponent(widget.username)}&number=$formattedNumber',
+      );
+      final res = await http.get(url).timeout(const Duration(seconds: 30));
 
       if (!mounted) return;
+      if (res.statusCode == 401) {
+        setState(() => _isGenerating = false);
+        _showToast('Sesi autentikasi kadaluarsa (401). Silakan login ulang.', isError: true);
+        return;
+      }
+
       final data = jsonDecode(res.body);
 
       // Support valid: true (standar response server), status: true, atau pairingCode != null
@@ -396,6 +434,7 @@ class _PairingPageState extends State<PairingPage>
         _startCountdown();
         HapticFeedback.mediumImpact();
         _showToast('Kode pairing berhasil di-generate!');
+        _fetchActiveSenders();
       } else {
         setState(() => _isGenerating = false);
         final errMsg = data['message'] ?? data['error'] ?? 'Gagal membuat kode pairing. Pastikan nomor aktif & benar.';
@@ -456,9 +495,15 @@ class _PairingPageState extends State<PairingPage>
     if (confirm != true) return;
 
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/deleteSender?key=${widget.sessionKey}&id=$senderId'),
-      ).timeout(const Duration(seconds: 15));
+      if (_currentSessionKey.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        _currentSessionKey = prefs.getString('key') ?? widget.sessionKey;
+      }
+
+      final url = Uri.parse(
+        '$baseUrl/deleteSender?key=$_currentSessionKey&username=${Uri.encodeComponent(widget.username)}&id=$senderId',
+      );
+      final res = await http.get(url).timeout(const Duration(seconds: 15));
 
       final data = jsonDecode(res.body);
       if (data['valid'] == true || data['status'] == true) {
@@ -1398,20 +1443,55 @@ class _PairingPageState extends State<PairingPage>
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.4)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _sendersError!,
-                    style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _sendersError!,
+                        style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh_rounded, color: _cyan, size: 20),
+                      onPressed: () => _fetchActiveSenders(forceRefreshKey: true),
+                    ),
+                  ],
+                ),
+                if (_sendersError!.contains('401')) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.login_rounded, size: 16, color: _cyan),
+                      label: const Text(
+                        'LOGIN ULANG KE APLIKASI',
+                        style: TextStyle(
+                          fontFamily: 'Orbitron',
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _cyan,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: _cyan, width: 1.2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                          (route) => false,
+                        );
+                      },
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh_rounded, color: _cyan, size: 20),
-                  onPressed: _fetchActiveSenders,
-                ),
+                ],
               ],
             ),
           )
