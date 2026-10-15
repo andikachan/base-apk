@@ -1,324 +1,260 @@
 ================================================================================
-                    PANDUAN LENGKAP & DOKUMENTASI RESMI BASE-API
-             WhatsApp Bot Engine, Pairing System & Bug Payload Sender
-                               Versi: 2.5.0
+                    PANDUAN RESMI PENGGUNA APLIKASI & BASE-API
+             (Official User Guide - Member, VIP & Public Edition)
 ================================================================================
 
-DAFTAR ISI:
---------------------------------------------------------------------------------
-1. PENGENALAN & ARSITEKTUR SISTEM
-2. STRUKTUR DIREKTORI & FILE DATABASE
-3. CARA MENJALANKAN & DEPLOYMENT SERVER
-4. DOKUMENTASI LENGKAP ENDPOINT REST API
-   - 4.1 Autentikasi & Manajemen Pengguna
-   - 4.2 Pairing WhatsApp & Manajemen Sesi Sender
-   - 4.3 Pengiriman Bug & Eksploit Payload
-   - 4.4 Manajemen Server / VPS (Remote Control)
-   - 4.5 Live Chat, Activity & Server Logs
-5. INTEGRASI DENGAN APLIKASI ANDROID (BASE-APK FLUTTER)
-6. TIPS PERAWATAN, BACKUP & TROUBLESHOOTING
-
-================================================================================
-1. PENGENALAN & ARSITEKTUR SISTEM
-================================================================================
-Base-API adalah backend server berbasis Node.js yang berfungsi sebagai pusat kendali
-untuk:
-- Layanan autentikasi user (member, VIP, reseller, owner).
-- Sistem Pairing WhatsApp tanpa scan QR (menggunakan 8-digit Pairing Code Baileys).
-- Multi-session WhatsApp Sender Management (koneksi multi-device persisten).
-- Engine pengiriman payload pesan bug/crash WhatsApp terstruktur.
-- Remote management VPS / Server via SSH & WebSocket.
-
-Spesifikasi Runtime:
-- Bahasa: Node.js v20+ / v24+
-- Library Utama: Express.js, @whiskeysockets/baileys, ws, pino, ssh2, axios
-- URL Produksi: https://base-api.ndichan.xyz
-- Port Default: 25576
-- Container: Pterodactyl / Docker Container
-
-================================================================================
-2. STRUKTUR DIREKTORI & FILE DATABASE
-================================================================================
-Direktori kerja utama:
-/var/lib/pterodactyl/volumes/9a7c295b-2f9c-498a-b95d-a9bbeda5bafb/
-
-File & Folder Inti:
-├── index.js             -> Entry point utama backend server & seluruh rute API
-├── package.json         -> Manifest modul & dependensi Node.js
-├── database.json        -> Database flat JSON berisi akun user, password, role, & limit
-├── keyList.json         -> Database session key aktif, riwayat login, & androidId
-├── tutorial.txt         -> File panduan lengkap yang sedang Anda baca ini
-├── permenmd/            -> Folder penyimpanan file otentikasi sesi WhatsApp
-│   └── <username>/      -> Folder sesi per user
-│       ├── <nomor>/     -> Folder kredensial Multi-File Auth State (creds.json, dsb)
-│       └── <nomor>.json -> Snapshot kredensial Baileys ter-enkripsi
-├── vip/                 -> Folder sesi WhatsApp khusus pool VIP
-├── vps.json             -> Daftar VPS / remote server yang terdaftar
-├── chat.json            -> Riwayat pesan obrolan global komunitas
-└── server.log           -> Catatan log transaksi dan aktivitas sistem
-
-================================================================================
-3. CARA MENJALANKAN & DEPLOYMENT SERVER
-================================================================================
-A. Instalasi Dependensi:
-   cd /var/lib/pterodactyl/volumes/9a7c295b-2f9c-498a-b95d-a9bbeda5bafb/
-   npm install
-
-B. Menjalankan Server secara Manual:
-   node index.js
-   
-C. Menjalankan di Background (menggunakan PM2 jika tersedia):
-   pm2 start index.js --name "base-api"
-
-D. Mengelola via Docker Container:
-   - Cek ID container:
-     docker ps | grep 25576
-   - Restart container:
-     docker restart <container_id>
-   - Melihat log realtime:
-     docker logs -f --tail 50 <container_id>
-
-================================================================================
-4. DOKUMENTASI LENGKAP ENDPOINT REST API
-================================================================================
+Selamat datang di Panduan Resmi Penggunaan Aplikasi & Layanan Base-API!
+Dokumen ini dibuat khusus sebagai petunjuk lengkap bagi seluruh pengguna (User,
+Member, maupun VIP) agar dapat menggunakan seluruh fitur aplikasi dengan mudah,
+lancar, dan maksimal.
 
 --------------------------------------------------------------------------------
-4.1 AUTENTIKASI & MANAJEMEN PENGGUNA
+DAFTAR ISI
 --------------------------------------------------------------------------------
-
-1. VALIDASI LOGIN (POST /validate)
-   Digunakan oleh aplikasi Flutter saat user login dengan username & password.
-   Endpoint: POST https://base-api.ndichan.xyz/validate
-   Headers : Content-Type: application/json
-   Body JSON:
-   {
-     "user": "ndika",
-     "pass": "password_kamu",
-     "androidId": "a1b2c3d4e5f6g7h8"
-   }
-   Respon Sukses (200 OK):
-   {
-     "valid": true,
-     "key": "NDIKZ-SEC-KEY-XXXXX",
-     "role": "vip",
-     "expiredDate": "2027-12-31"
-   }
-
-2. CEK INFORMASI AKUN (GET /myInfo)
-   Digunakan untuk validasi sessionKey atau auto-login saat aplikasi dibuka.
-   Endpoint: GET https://base-api.ndichan.xyz/myInfo?key=<sessionKey>&username=<username>
-   Respon Sukses:
-   {
-     "valid": true,
-     "username": "ndika",
-     "role": "vip",
-     "expiredDate": "2027-12-31",
-     "key": "NDIKZ-SEC-KEY-XXXXX"
-   }
-
-3. UBAH PASSWORD (POST /changepass)
-   Endpoint: POST https://base-api.ndichan.xyz/changepass
-   Body JSON:
-   {
-     "key": "NDIKZ-SEC-KEY-XXXXX",
-     "oldpass": "pass_lama",
-     "newpass": "pass_baru"
-   }
-
-4. MEMBUAT AKUN BARU (GET /createAccount atau GET /userAdd)
-   Endpoint: GET https://base-api.ndichan.xyz/createAccount?key=<adminKey>&newUser=<username>&pass=<password>&day=<jumlahHari>
-
-5. DAFTAR SEMUA PENGGUNA (GET /listUsers)
-   Endpoint: GET https://base-api.ndichan.xyz/listUsers?key=<adminKey>
-
-6. HAPUS PENGGUNA (GET /deleteUser)
-   Endpoint: GET https://base-api.ndichan.xyz/deleteUser?key=<adminKey>&targetUser=<username>
-
---------------------------------------------------------------------------------
-4.2 PAIRING WHATSAPP & MANAJEMEN SESI SENDER
---------------------------------------------------------------------------------
-
-1. REQUEST KODE PAIRING WHATSAPP (GET /getPairing)
-   Menghubungkan nomor WhatsApp ke server menggunakan 8-digit Pairing Code.
-   Mendukung semua format nomor internasional (tanpa spasi / tanda +).
-   Endpoint:
-   GET https://base-api.ndichan.xyz/getPairing?key=<sessionKey>&username=<username>&number=<nomorWhatsApp>
-   
-   Contoh Request:
-   curl -s "https://base-api.ndichan.xyz/getPairing?username=ndika&number=6282241182487"
-
-   Respon Sukses (200 OK):
-   {
-     "valid": true,
-     "number": "6282241182487",
-     "pairingCode": "NDIKA123"
-   }
-
-   Cara Memasukkan di WhatsApp:
-   1. Buka WhatsApp di HP yang ingin ditautkan.
-   2. Masuk ke Pengaturan / Titik Tiga -> Perangkat Tertaut (Linked Devices).
-   3. Ketuk "Tautkan Perangkat" -> "Tautkan dengan nomor telepon saja".
-   4. Masukkan kode 8-digit (misal: NDIKA123).
-   5. Tunggu hingga status di server berubah menjadi ONLINE.
-
-2. MELIHAT DAFTAR SENDER TERHUBUNG (GET /mySender)
-   Mengambil semua nomor WhatsApp yang saat ini aktif dan online milik akun user.
-   Endpoint:
-   GET https://base-api.ndichan.xyz/mySender?key=<sessionKey>&username=<username>
-
-   Contoh Request:
-   curl -s "https://base-api.ndichan.xyz/mySender?username=ndika"
-
-   Respon Sukses (200 OK):
-   {
-     "valid": true,
-     "connections": [
-       {
-         "id": "6282241182487",
-         "number": "6282241182487",
-         "sessionName": "6282241182487",
-         "name": "call me ndika",
-         "status": "online",
-         "source": "personal"
-       }
-     ]
-   }
-
-3. MENGHAPUS / MEMUTUS SESI SENDER (ALL /deleteSender)
-   Memutuskan koneksi socket Baileys dan menghapus file sesi dari folder permenmd.
-   Mendukung method GET, POST, maupun DELETE.
-   Parameter yang diterima: key, username, id, sessionName, number.
-   
-   Contoh Request:
-   curl -s "https://base-api.ndichan.xyz/deleteSender?username=ndika&id=6282241182487"
-
-   Respon Sukses:
-   {
-     "valid": true,
-     "message": "Sender deleted successfully"
-   }
-
-4. STATISTIK SENDER (GET /getSenderStats)
-   Melihat jumlah sender aktif di server (private & global).
-   Endpoint: GET https://base-api.ndichan.xyz/getSenderStats?key=<sessionKey>&username=<username>
-
---------------------------------------------------------------------------------
-4.3 PENGIRIMAN BUG & EKSPLOIT PAYLOAD
---------------------------------------------------------------------------------
-
-1. MENGIRIM PAYLOAD BUG KE TARGET (GET /sendBug)
-   Endpoint:
-   GET https://base-api.ndichan.xyz/sendBug?key=<sessionKey>&username=<username>&target=<targetNumber>&bug=<bugId>
-
-   Parameter:
-   - key      : Session key user yang valid
-   - username : Username pemilik akun
-   - target   : Nomor tujuan format internasional tanpa + (contoh: 6281234567890)
-                Atau JID Grup WhatsApp (contoh: 120363xxxxxx@g.us)
-   - bug      : ID jenis bug yang dipilih (lihat daftar di bawah)
-
-   Daftar ID Bug yang Tersedia:
-   +-------------+-----------------------+-------------------------------------+
-   | Bug ID      | Nama Tampilan         | Fungsi / Efek                       |
-   +-------------+-----------------------+-------------------------------------+
-   | blank       | BLANK DELAY           | Mengirim payload blank font delay   |
-   | combo       | CLASSIC COMBO         | Kombinasi freeze & crash payload    |
-   | combov2     | COMBO V2 ULTRA        | Paket combo intensitas tinggi       |
-   | freeze      | FREEZE FORCLOSE       | Menghentikan paksa aplikasi WA      |
-   | blast       | BLAST D-FIVE          | Paket serangan 5x repetisi instan   |
-   | overdrive   | OVERDRIVE GEAR 4      | Crash memory buffer perangkat target|
-   | click       | CRASH CLICK NOTIF     | Crash seketika saat notif ditekan   |
-   | delay       | FULL DELAY HARD       | Menghambat antrian chat WA target   |
-   | pushmedia   | PUSH MEDIA BKP        | Eksploit rendering media dokumen/img|
-   | grouptest   | CRASH GROUP           | Payload khusus ditujukan untuk grup |
-   | xfcui       | CRASH UI              | Merusak rendering tampilan chat UI  |
-   | fcc         | FORCLOSE ONE MSG      | 1 pesan pemicu forclose WhatsApp    |
-   | fc          | DELAY TERGACOR        | Delay chat ekstrim                  |
-   | androidfrz  | CRASH BOKEP           | Eksploit crash format stiker/video  |
-   | clickcrash  | NOTIF CRASH           | Crash via notifikasi sistem         |
-   | iosXv       | CRASH IOS             | Eksploit khusus WhatsApp iOS/iPhone |
-   | roid_group  | DELAY GB              | Delay spesifik perangkat Android    |
-   +-------------+-----------------------+-------------------------------------+
-
---------------------------------------------------------------------------------
-4.4 MANAJEMEN SERVER / VPS (REMOTE CONTROL)
---------------------------------------------------------------------------------
-Base-API dilengkapi fitur pengelolaan server VPS jarak jauh via protokol SSH:
-- GET  /myServer    -> Menampilkan daftar VPS yang dimiliki user.
-- POST /addServer   -> Menambahkan VPS baru (IP, Port, Username, Password).
-- POST /delServer   -> Menghapus VPS yang tersimpan.
-- POST /sendCommand -> Mengirimkan perintah Linux/Bash ke VPS dan membaca output.
-
---------------------------------------------------------------------------------
-4.5 LIVE CHAT, ACTIVITY & SERVER LOGS
---------------------------------------------------------------------------------
-- GET  /api/chat/messages -> Mengambil daftar pesan live chat antar pengguna bot.
-- POST /api/chat/send     -> Mengirimkan pesan baru ke obrolan komunitas.
-- GET  /getMyActivity     -> Melihat riwayat perintah dan bug yang pernah dikirim.
-- GET  /getLog            -> Melihat catatan log sistem (khusus admin).
-- GET  /ping              -> Cek status kelangsungan hidup server (health check).
+1. PENGENALAN APLIKASI
+2. CARA INSTALASI & LOGIN AKUN
+3. PANDUAN LENGKAP PAIRING WHATSAPP (TAUTKAN NOMOR SENDER)
+4. CARA MENGIRIMKAN BUG KE TARGET & GRUP
+5. DAFTAR LENGKAP JENIS BUG & FUNGSINYA (PANDUAN ANDROID & IOS)
+6. TIPS & TRIK AGAR NOMOR SENDER TIDAK MUDAH TERKENA BANNED
+7. CARA KELOLA & GANTI NOMOR SENDER
+8. FITUR LIVE CHAT KOMUNITAS & REMOTE SERVER
+9. PERTANYAAN UMUM (F.A.Q) & CARA ATASI KENDALA
+10. SYARAT, KETENTUAN & ETIKA PENGGUNAAN
 
 ================================================================================
-5. INTEGRASI DENGAN APLIKASI ANDROID (BASE-APK FLUTTER)
+1. PENGENALAN APLIKASI
 ================================================================================
-Aplikasi Android (ndika-base-apk) berkomunikasi langsung dengan Base-API melalui
-konfigurasi berikut:
-
-1. Konfigurasi Endpoint:
-   File: lib/api_config.dart
-   const String baseUrl = 'https://base-api.ndichan.xyz';
-
-2. Alur Penyimpanan Sesi di Aplikasi:
-   - Setelah user berhasil login di `lib/login_page.dart`, data berikut disimpan
-     secara lokal menggunakan SharedPreferences:
-     * 'user' -> Username pengguna
-     * 'pass' -> Password pengguna
-     * 'key'  -> Session key aktif
-     * 'role' -> Role akun (member / vip)
-
-3. Penanganan Error 401 (Unauthorized):
-   - Jika `sessionKey` di memori kadaluarsa, halaman Pairing (`lib/pairing_page.dart`)
-     dan Bug Sender (`lib/bug_sender.dart`) secara otomatis:
-     a. Menyertakan parameter `username` ke server.
-     b. Membaca ulang key terbaru dari SharedPreferences.
-     c. Menyediakan tombol "LOGIN ULANG KE APLIKASI" jika sesi benar-benar expired.
-
-4. Penanganan ID Sesi Sender:
-   - Data sender dari `/mySender` menyediakan properti lengkap: `id`, `number`,
-     `name`, dan `sessionName`.
-   - Tombol hapus sesi memanggil:
-     /deleteSender?key=<key>&username=<user>&id=<id>&sessionName=<id>
-     sehingga tidak akan terjadi error "id is required".
+Aplikasi ini adalah platform otomasi WhatsApp canggih yang dirancang untuk:
+- Menguji keamanan dan ketahanan aplikasi WhatsApp (Security Testing & Stress Test).
+- Menghubungkan akun WhatsApp sebagai Sender secara otomatis tanpa scan barcode QR
+  (Cukup menggunakan 8-digit Kode Pairing).
+- Mengirimkan paket data/payload pesan khusus (Bug & Delay) ke nomor target atau grup.
+- Berbagi obrolan dan informasi sesama pengguna di ruang obrolan komunitas.
 
 ================================================================================
-6. TIPS PERAWATAN, BACKUP & TROUBLESHOOTING
+2. CARA INSTALASI & LOGIN AKUN
+================================================================================
+A. Instalasi Aplikasi (Android):
+   1. Unduh file APK rilis terbaru (misal: `app-release.apk`).
+   2. Buka file APK tersebut di HP Android Anda.
+   3. Jika muncul peringatan "Instal dari Sumber Tidak Dikenal", pilih "Izinkan".
+   4. Tunggu hingga proses instalasi selesai dan buka aplikasi.
+
+B. Login ke Aplikasi:
+   1. Pada layar Login, masukkan "Username" dan "Password" akun Anda.
+   2. Jika Anda belum memiliki akun, silakan hubungi Admin / Reseller resmi untuk
+      melakukan registrasi akun (Tersedia tier Member dan VIP).
+   3. Ketuk tombol "LOGIN KE APLIKASI".
+   4. Setelah berhasil, Anda akan langsung diarahkan ke Dashboard utama.
+
+================================================================================
+3. PANDUAN LENGKAP PAIRING WHATSAPP (TAUTKAN NOMOR SENDER)
+================================================================================
+Fitur Pairing memungkinkan nomor WhatsApp Anda terhubung ke sistem server agar
+dapat dijadikan sebagai "Sender" (mesin pengirim bug).
+
+Langkah-langkah Pairing:
+--------------------------------------------------------------------------------
+LANGKAH 1: Buka Menu Pairing di Aplikasi
+- Dari halaman Dashboard, pilih menu "Pairing Sender" atau icon WhatsApp Pairing.
+
+LANGKAH 2: Pilih Kode Negara & Masukkan Nomor
+- Pilih bendera / kode negara Anda (Default: Indonesia +62).
+- Sistem mendukung SELURUH negara di dunia (+1 US, +60 Malaysia, +65 SG, dll).
+- Ketik nomor WhatsApp Anda (Contoh: 082241182487 atau 82241182487).
+  *Catatan: Tidak perlu mengetik tanda plus (+), sistem otomatis merapikannya.*
+
+LANGKAH 3: Dapatkan Kode Pairing
+- Ketuk tombol "GENERATE PAIRING CODE".
+- Tunggu beberapa detik hingga muncul 8-digit Kode Pairing di layar
+  (Contoh: NDIKA123 atau ABCD-EFGH).
+- Ketuk tombol "SALIN KODE" untuk menyalin ke clipboard.
+
+LANGKAH 4: Masukkan Kode di Aplikasi WhatsApp Anda
+- Buka aplikasi WhatsApp di HP nomor yang Anda daftarkan tadi.
+- Ketuk titik tiga di pojok kanan atas (Android) atau Pengaturan (iPhone).
+- Pilih "Perangkat Tertaut" (Linked Devices).
+- Ketuk "Tautkan Perangkat".
+- Pada bagian bawah layar, ketuk opsi: "Tautkan dengan nomor telepon saja"
+  (Link with phone number instead).
+- Tempelkan atau ketik 8-digit kode yang didapatkan dari aplikasi tadi.
+
+LANGKAH 5: Selesai & Terhubung
+- WhatsApp Anda akan memproses tautan selama 3-5 detik.
+- Kembali ke aplikasi kami, ketuk tombol "Refresh" di daftar sender.
+- Status nomor Anda sekarang akan berstatus "ONLINE" dan siap digunakan!
+
+================================================================================
+4. CARA MENGIRIMKAN BUG KE TARGET & GRUP
+================================================================================
+Setelah nomor sender Anda berstatus ONLINE, Anda dapat melakukan pengetesan bug:
+
+A. Menyerang Nomor Target Pribadi:
+   1. Masuk ke menu "Bug Sender" atau "Dashboard".
+   2. Pada kolom "Nomor Target", masukkan nomor target diawali dengan kode negara
+      tanpa spasi dan tanpa tanda plus (+).
+      Contoh: 6281234567890 (Bukan 0812... dan bukan +62812...).
+   3. Pilih "Jenis Bug" yang ingin dikirimkan sesuai sasaran perangkat target.
+   4. Ketuk tombol "KIRIM BUG".
+   5. Tunggu notifikasi berhasil terkirim.
+
+B. Menyerang Grup WhatsApp:
+   1. Siapkan Target ID Grup (JID Grup).
+      Format ID Grup: `120363xxxxxxxxx@g.us`
+   2. Masukkan ID Grup tersebut pada kolom target.
+   3. Pilih jenis bug khusus grup (misal: "CRASH GROUP" atau "COMBO V2 ULTRA").
+   4. Ketuk tombol "KIRIM BUG KE GRUP".
+
+================================================================================
+5. DAFTAR LENGKAP JENIS BUG & FUNGSINYA (PANDUAN ANDROID & IOS)
+================================================================================
+Pilihlah jenis payload bug sesuai dengan tipe HP dan sasaran target Anda:
+
+1. BLANK DELAY (`blank`)
+   - Efek: Mengirimkan teks tak kasat mata berdensitas tinggi.
+   - Hasil: WhatsApp target akan mengalami lag dan pesan menumpuk lambat masuk.
+   - Sasaran: Semua jenis HP (Android & iOS).
+
+2. CLASSIC COMBO (`combo`)
+   - Efek: Paket gabungan delay font dan script forclose.
+   - Hasil: Menghambat aplikasi WhatsApp dan sesekali memicu forclose.
+   - Sasaran: Android kelas entry & mid-range.
+
+3. COMBO V2 ULTRA (`combov2`)
+   - Efek: Versi upgrade dari Classic Combo dengan intensitas payload ganda.
+   - Hasil: WhatsApp target freeze total saat membuka ruang obrolan.
+   - Sasaran: Android spesifikasi tinggi & grup aktif.
+
+4. FREEZE FORCLOSE (`freeze`)
+   - Efek: Menyerang proses thread rendering antarmuka chat WhatsApp.
+   - Hasil: WhatsApp langsung tertutup otomatis (Keluar sendiri / Crash).
+   - Sasaran: Seluruh tipe WhatsApp Android (Standar & Bisnis).
+
+5. BLAST D-FIVE (`blast`)
+   - Efek: Serangan kilat 5x siklus otomatis dalam hitungan detik.
+   - Hasil: Spam notifikasi berat yang membebani CPU ponsel target.
+   - Sasaran: Menghentikan target yang sedang spam chat.
+
+6. OVERDRIVE GEAR 4 (`overdrive`)
+   - Efek: Eksploitasi buffer memory WhatsApp.
+   - Hasil: Ponsel target menjadi panas dan aplikasi WhatsApp macet total.
+   - Sasaran: Android RAM 3GB - 6GB.
+
+7. CRASH CLICK NOTIF (`click`)
+   - Efek: Menginfeksi bar notifikasi WhatsApp target.
+   - Hasil: Begitu target mengetuk notifikasi pesan yang masuk, WA langsung crash.
+   - Sasaran: Pengguna yang sering membaca chat lewat pop-up notifikasi.
+
+8. FULL DELAY HARD (`delay`)
+   - Efek: Memblokir antrian pesan masuk di server perutean WhatsApp target.
+   - Hasil: Target tidak dapat menerima maupun mengirim chat selama beberapa menit.
+   - Sasaran: Semua perangkat.
+
+9. PUSH MEDIA BKP (`pushmedia`)
+   - Efek: Eksploitasi rendering file dokumen & media WhatsApp.
+   - Hasil: Galeri/chat media target mengalami error rendering layar putih.
+   - Sasaran: Android & WhatsApp Web.
+
+10. CRASH GROUP (`grouptest` / `roid_group`)
+    - Efek: Mengacaukan metadata grup WhatsApp.
+    - Hasil: Siapapun anggota grup yang membuka obrolan grup tersebut akan force close.
+    - Sasaran: Grup WhatsApp target.
+
+11. CRASH IOS / IPHONE (`iosXv`)
+    - Efek: Eksploitasi encoding Unicode & font CoreText khas iOS Apple.
+    - Hasil: WhatsApp pada iPhone target langsung respring / crash mendadak.
+    - Sasaran: Khusus pengguna iPhone / iOS (iOS 15 s/d iOS 17+).
+
+================================================================================
+6. TIPS & TRIK AGAR NOMOR SENDER TIDAK MUDAH TERKENA BANNED
+================================================================================
+Agar nomor WhatsApp yang Anda gunakan sebagai sender awet dan terhindar dari
+blokir/banned pihak WhatsApp, ikuti panduan wajib berikut:
+
+1. JANGAN GUNAKAN NOMOR UTAMA:
+   Selalu gunakan nomor cadangan (nomor kedua / nomor khusus bot), bukan nomor
+   pribadi penting Anda.
+2. WARM UP NOMOR BARU:
+   Jika menggunakan kartu perdana baru, gunakan untuk chat normal selama 2-3 hari
+   sebelum digunakan untuk mengirimkan bug secara beruntun.
+3. BERI JEDA / COOLDOWN:
+   Jangan mengirimkan bug tanpa henti secara membabi buta. Berikan jeda 10-30 detik
+   antar pengiriman agar tidak terdeteksi oleh sistem filtering spam WhatsApp.
+4. GANTI SENDER SECARA BERKALA:
+   Jika memiliki beberapa nomor, gantilah sender secara bergantian.
+5. UPGRADE KE VIP:
+   Akun dengan status VIP dapat memanfaatkan pool nomor bersama yang disediakan
+   oleh server, sehingga tidak membebani nomor pribadi Anda.
+
+================================================================================
+7. CARA KELOLA & GANTI NOMOR SENDER
+================================================================================
+A. Melihat Status Sender Anda:
+   - Masuk ke menu "Pairing Sender".
+   - Di bagian bawah, terdapat kartu sender aktif yang menampilkan:
+     * Nomor telepon WhatsApp Anda.
+     * Nama profil akun WhatsApp Anda.
+     * Indikator status: "ONLINE" (Warna Hijau).
+
+B. Memutuskan / Menghapus Sesi Sender:
+   - Jika ingin mengganti nomor atau keluar dari sistem bot:
+   - Ketuk icon "Tempat Sampah" (Hapus Sesi) di kartu nomor Anda.
+   - Konfirmasi dengan memilih "Hapus Sesi".
+   - Sesi Anda akan otomatis terputus dari server dan Anda dapat menautkan
+     nomor baru kapan saja.
+
+================================================================================
+8. FITUR LIVE CHAT KOMUNITAS & REMOTE SERVER
+================================================================================
+1. Fitur Live Chat:
+   - Anda dapat berinteraksi, bertanya, dan berdiskusi dengan sesama pengguna
+     aplikasi melalui menu Live Chat.
+   - Jaga kesopanan dan dilarang mengirimkan spam atau link berbahaya di ruang chat.
+
+2. Fitur Server VPS (Khusus Pengguna Tertentu):
+   - Menu ini memungkinkan Anda menghubungkan server Linux VPS pribadi untuk
+     menjalankan script pengujian secara mandiri.
+
+================================================================================
+9. PERTANYAAN UMUM (F.A.Q) & CARA ATASI KENDALA
 ================================================================================
 
-1. Error: "Invalid session key (401)"
-   Penyebab : Kunci sesi user tidak ditemukan di memori server.
-   Solusi   : Server kini telah dilengkapi helper `getKeyInfo(key, username)`
-              yang otomatis mencocokkan username dengan file `keyList.json` dan
-              `database.json` serta meregenerasi cache sesi tanpa harus login ulang.
+Q1: Kenapa Kode Pairing tidak mau muncul?
+A1: Pastikan nomor yang Anda masukkan sudah benar beserta kode negaranya. Pastikan
+    pula koneksi internet Anda stabil. Coba ulangi dalam 5-10 detik.
 
-2. Error: "Sender id is required (400)"
-   Penyebab : Parameter `id` tidak disertakan saat memanggil `/deleteSender`.
-   Solusi   : Pastikan URL menyertakan `&id=<sessionName>&sessionName=<sessionName>`.
+Q2: Muncul tulisan "Gagal memuat sesi sender (401)", apa artinya?
+A2: Masa aktif sesi login Anda di HP telah berakhir. Cukup ketuk tombol
+    "LOGIN ULANG KE APLIKASI" di layar untuk memperbarui sesi Anda.
 
-3. Mengatasi Disk Penuh Akibat Pre-Keys Baileys:
-   Folder sesi di `permenmd/<user>/<number>/` dapat mengakumulasi ribuan file
-   pre-key. Lakukan pembersihan rutin berkala pada file `pre-key-*.json` lama
-   dengan tetap mempertahankan `creds.json`.
+Q3: Kenapa pesan bug tidak masuk ke target?
+A3: Periksa beberapa kemungkinan berikut:
+    - Apakah nomor sender Anda masih berstatus ONLINE?
+    - Apakah nomor target salah / sudah memblokir nomor sender Anda?
+    - Apakah koneksi internet target sedang offline?
 
-4. Cara Melakukan Backup Database:
-   Salin file-file penting berikut ke tempat aman secara berkala:
-   - database.json (akun pengguna)
-   - keyList.json (daftar session key)
-   - vps.json (daftar server SSH)
-   - folder permenmd/ (sesi WhatsApp yang aktif)
+Q4: Apakah aplikasi ini aman digunakan?
+A4: Sangat aman untuk perangkat Anda sendiri. Aplikasi ini tidak meminta akses root,
+    tidak membaca data pribadi di HP Anda, dan kredensial login disimpan secara aman.
 
-5. Kontak & Bantuan:
-   - Author: NdikzOne / andikachan
-   - Web API: https://base-api.ndichan.xyz
+Q5: Bagaimana cara memperpanjang masa aktif akun saya?
+A5: Hubungi Admin atau Reseller tempat Anda membeli akun sebelum tanggal expired
+    berakhir untuk melakukan perpanjangan masa aktif.
+
 ================================================================================
-                        DOKUMENTASI INI DIBUAT OTOMATIS
+10. SYARAT, KETENTUAN & ETIKA PENGGUNAAN (TERMS OF SERVICE)
+================================================================================
+1. Aplikasi dan layanan Base-API ini disediakan semata-mata untuk tujuan edukasi,
+   pembelajaran protokol jaringan, dan pengujian keamanan sistem (Security Audit).
+2. Segala bentuk penyalahgunaan yang merugikan pihak lain, perusakan fasilitas umum,
+   atau tindakan melanggar hukum adalah tanggung jawab penuh masing-masing pengguna.
+3. Dilarang keras memperjualbelikan ulang (resell) file aplikasi tanpa izin resmi
+   dari pengembang.
+4. Dengan menggunakan aplikasi ini, Anda menyatakan setuju dan tunduk pada seluruh
+   peraturan dan panduan yang tercantum dalam dokumen ini.
+
+================================================================================
+              DIBUAT OLEH: TIM OFFICIAL BASE-API & NDIKZ DEVELOPER
+            Website: https://base-api.ndichan.xyz | Versi Dokumen: 2.5
 ================================================================================
