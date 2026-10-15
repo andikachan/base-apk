@@ -494,6 +494,12 @@ class _PairingPageState extends State<PairingPage>
 
     if (confirm != true) return;
 
+    final idStr = (senderId ?? '').toString().trim();
+    if (idStr.isEmpty) {
+      _showToast('ID Sender tidak valid atau kosong', isError: true);
+      return;
+    }
+
     try {
       if (_currentSessionKey.isEmpty) {
         final prefs = await SharedPreferences.getInstance();
@@ -501,7 +507,7 @@ class _PairingPageState extends State<PairingPage>
       }
 
       final url = Uri.parse(
-        '$baseUrl/deleteSender?key=$_currentSessionKey&username=${Uri.encodeComponent(widget.username)}&id=$senderId',
+        '$baseUrl/deleteSender?key=$_currentSessionKey&username=${Uri.encodeComponent(widget.username)}&id=$idStr&sessionName=$idStr',
       );
       final res = await http.get(url).timeout(const Duration(seconds: 15));
 
@@ -1544,9 +1550,19 @@ class _PairingPageState extends State<PairingPage>
   }
 
   Widget _buildSenderCard(Map<String, dynamic> sender) {
-    final senderId = sender['id'] ?? sender['number'] ?? '';
-    final senderNumber = sender['number']?.toString() ?? sender['id']?.toString() ?? 'Unknown';
-    final senderName = sender['name']?.toString() ?? 'WhatsApp Sender';
+    final senderId = (sender['id'] ?? sender['sessionName'] ?? sender['number'] ?? '').toString().trim();
+    final rawNumber = (sender['number'] ?? sender['sessionName'] ?? sender['id'] ?? '').toString().trim();
+    final senderNumber = rawNumber.isNotEmpty ? rawNumber.replaceAll(RegExp(r'[^0-9]'), '') : '';
+    final rawName = (sender['name'] ?? '').toString().trim();
+    final bool hasValidName = rawName.isNotEmpty &&
+        rawName.toLowerCase() != 'unknown' &&
+        rawName.toLowerCase() != 'null';
+    final senderName = hasValidName
+        ? rawName
+        : (senderNumber.isNotEmpty ? 'WhatsApp Sender (+$senderNumber)' : 'WhatsApp Sender');
+    final displayTitle = senderNumber.isNotEmpty
+        ? '+$senderNumber'
+        : (hasValidName ? rawName : 'WhatsApp Connected');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1582,7 +1598,7 @@ class _PairingPageState extends State<PairingPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '+$senderNumber',
+                      displayTitle,
                       style: const TextStyle(
                         fontFamily: 'ShareTechMono',
                         color: _text,

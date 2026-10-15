@@ -128,7 +128,7 @@ class _BugSenderPageState extends State<BugSenderPage>
     setState(() { isLoading = true; errorMessage = null; });
     try {
       final res = await http.get(
-        Uri.parse("$baseUrl/mySender?key=${widget.sessionKey}"),
+        Uri.parse("$baseUrl/mySender?key=${widget.sessionKey}&username=${Uri.encodeComponent(widget.username)}"),
         headers: {'Content-Type': 'application/json'},
       );
       if (res.statusCode == 200) {
@@ -158,7 +158,7 @@ class _BugSenderPageState extends State<BugSenderPage>
     setState(() => isLoading = true);
     try {
       final res = await http.get(Uri.parse(
-          "$baseUrl/getPairing?key=${widget.sessionKey}&number=$number"));
+          "$baseUrl/getPairing?key=${widget.sessionKey}&username=${Uri.encodeComponent(widget.username)}&number=$number"));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data["valid"] == true) {
@@ -177,18 +177,23 @@ class _BugSenderPageState extends State<BugSenderPage>
     }
   }
 
-  Future<void> _deleteSender(String senderId) async {
+  Future<void> _deleteSender(dynamic senderId) async {
+    final idStr = (senderId ?? '').toString().trim();
+    if (idStr.isEmpty) {
+      _toast("ID Sender tidak valid atau kosong", error: true);
+      return;
+    }
     setState(() => isLoading = true);
     try {
-      final res = await http.delete(Uri.parse(
-          "$baseUrl/deleteSender?key=${widget.sessionKey}&id=$senderId"));
+      final res = await http.get(Uri.parse(
+          "$baseUrl/deleteSender?key=${widget.sessionKey}&username=${Uri.encodeComponent(widget.username)}&id=$idStr&sessionName=$idStr"));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data["valid"] == true) {
           _toast("Sender deleted successfully");
           _fetchSenders();
         } else {
-          _toast(data["message"] ?? "Failed", error: true);
+          _toast(data["message"] ?? data["error"] ?? "Failed", error: true);
         }
       } else {
         _toast("Server error: ${res.statusCode}", error: true);
@@ -308,13 +313,18 @@ class _BugSenderPageState extends State<BugSenderPage>
         ),
       ),
     );
-    if (confirmed == true) _deleteSender(sender['id']);
+    if (confirmed == true) _deleteSender(sender['id'] ?? sender['sessionName'] ?? sender['number']);
   }
 
   // ─── Widgets ─────────────────────────────────────────────────────────────────
   Widget _buildSenderCard(Map<String, dynamic> sender, int index) {
-    final name    = sender['sessionName'] ?? 'WhatsApp Sender';
-    final isConn  = true; // placeholder — bisa pakai field status dari API
+    final rawNumber = (sender['number'] ?? sender['sessionName'] ?? sender['id'] ?? '').toString();
+    final senderNumber = rawNumber.isNotEmpty ? rawNumber.replaceAll(RegExp(r'[^0-9]'), '') : '';
+    final rawName = sender['name']?.toString() ?? '';
+    final name = (rawName.isNotEmpty && rawName.toLowerCase() != 'unknown' && rawName.toLowerCase() != 'null')
+        ? (senderNumber.isNotEmpty ? '$rawName (+$senderNumber)' : rawName)
+        : (senderNumber.isNotEmpty ? 'WhatsApp (+${senderNumber})' : 'WhatsApp Sender');
+    final isConn  = sender['status'] == 'online' || true;
 
     return _StaggerItem(
       index: index,
